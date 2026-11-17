@@ -34,3 +34,4 @@ desktop.ini
 # 7. OS GENERATED FILES
 *.zip
 *.tar.gz
+secret.php
