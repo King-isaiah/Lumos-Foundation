@@ -3,7 +3,7 @@ name: Deploy to InfinityFree
 on:
   push:
     branches:
-      - main # Change this if your main branch is named 'master'
+      - main
 
 jobs:
   ftp-deploy:
@@ -19,3 +19,8 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: ${{ secrets.FTP_TARGET_FOLDER }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/README.md
