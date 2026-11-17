@@ -1,0 +1,22 @@
+:root {
+  --forest: #1F3B2C;      /* Primary Dark Background */
+  --sand: #ECE2CF;        /* Surface / Card Background */
+  --clay: #C2643F;        /* Accent / Buttons */
+  
+  --text-light: #ECE2CF;  /* Text on Forest Green */
+  --text-dark: #1F3B2C;   /* Text on Warm Sand */
+  
+  --border-light: rgba(236, 226, 207, 0.2);
+  --border-dark: rgba(31, 59, 44, 0.1);
+  
+  --radius: 12px;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--forest);
+  color: var(--text-light);
+  margin: 0;
+  font-family: var(--font-body);
+}

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in — Lumos Foundation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/base.css">
+<link rel="stylesheet" href="./assets/css/toast.css">
+<link rel="stylesheet" href="./assets/css/login.css">
+</head>
+<body>
+  <main class="login-shell">
+    <section class="login-hero" data-hero>
+      <div class="brand">
+        <span class="brand-mark">L</span>
+        <span class="brand-name">Lumos Foundation</span>
+      </div>
+      <h1>Every great mind<br><em>deserves a stage.</em></h1>
+      <p class="hero-sub">Enter paid CBT exams. Rise on the leaderboard. Win real prizes.</p>
+      <div class="hero-orbs" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+    </section>
+
+    <section class="login-card">
+      <header>
+        <h2>Welcome back</h2>
+        <p>Log in to continue your journey.</p>
+      </header>
+
+      <form id="loginForm" novalidate>
+        <label>
+          <span>Email address</span>
+          <input type="email" name="email" autocomplete="email" required placeholder="you@example.com">
+        </label>
+
+        <label>
+          <span>Password</span>
+          <input type="password" name="password" autocomplete="current-password" required placeholder="••••••••">
+        </label>
+
+        <div class="row-between">
+          <a href="./forgot-password.html" class="link-muted">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn-primary" data-submit>
+          <span class="btn-label">Log in</span>
+          <span class="btn-spinner" hidden></span>
+        </button>
+      </form>
+
+      <p class="signup-line">
+        New here? <a href="./register.html">Create an account</a>
+      </p>
+    </section>
+  </main>
+
+  <script type="module" src="./assets/js/pages/login.js"></script>
+</body>
+</html>

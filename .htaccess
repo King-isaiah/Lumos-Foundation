@@ -1,0 +1,23 @@
+# Block direct access to sensitive files (Config & Secrets)
+<FilesMatch "^(config\.php|secrets\.php|Logger\.php)$">
+    Require all denied
+</FilesMatch>
+
+# Allow cron.php to be accessed (we will protect it with a ?key= in the code)
+<Files "cron.php">
+    Require all granted
+</Files>
+
+# Force HTTPS in production (ignores localhost)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} !^localhost [NC]
+    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1 [NC]
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# Deny access to hidden files (like .env or .git)
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>

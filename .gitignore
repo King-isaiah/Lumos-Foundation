@@ -1,0 +1,36 @@
+# 1. SECRETS & ENVIRONMENT
+secrets.php
+.env
+.env.local
+
+# 2. LOGS
+logs/*.log
+logs/*.log.*
+*.log
+php_errorlog
+error_log
+
+# 3. OPERATING SYSTEM FILES
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 4. IDE / EDITOR FILES
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# 5. DEPENDENCIES
+/vendor/
+/node_modules/
+
+# 6. STORAGE & TEMPORARY FILES
+/storage/
+/uploads/
+*.tmp
+*.cache
+
+# 7. OS GENERATED FILES
+*.zip
+*.tar.gz
