@@ -6,15 +6,15 @@
     <title>Redirecting...</title>
     
     <!-- Method 1: HTML Meta Refresh (Immediate redirect, 0 seconds) -->
-    <meta http-equiv="refresh" content="0; url=public/login.html">
+    <meta http-equiv="refresh" content="0; url=public/login.php">
     
     <!-- Method 2: JavaScript Redirect (Backup) -->
     <script>
-        window.location.href = "public/login.html";
+        window.location.href = "public/login.php";
     </script>
 </head>
 <body>
     <p>Redirecting to login page...</p>
-    <p>If you are not redirected automatically, <a href="public/login.html">click here to go to the login page</a>.</p>
+    <p>If you are not redirected automatically, <a href="public/login.php">click here to go to the login page</a>.</p>
 </body>
 </html>

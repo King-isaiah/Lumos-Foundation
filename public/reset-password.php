@@ -52,7 +52,7 @@
 
     if (!email) {
       toast.error('Missing email address.');
-      setTimeout(() => location.href = './forgot-password.html', 1000);
+      setTimeout(() => location.href = './forgot-password.php', 1000);
     }
 
     let resetToken = null; // Store the token securely in memory
@@ -101,7 +101,7 @@
         });
         
         toast.success('Password updated! Redirecting to login...');
-        setTimeout(() => location.href = './login.html', 1500);
+        setTimeout(() => location.href = './login.php', 1500);
 
       } catch (err) {
         toast.error(err.message);

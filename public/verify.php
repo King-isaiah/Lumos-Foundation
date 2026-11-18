@@ -83,7 +83,7 @@
       <button type="submit" class="btn-verify" id="submitBtn">Verify Email</button>
     </form>
     
-    <a href="./login.html" class="back-link">Back to Login</a>
+    <a href="./login.php" class="back-link">Back to Login</a>
   </div>
 
   <script type="module">
@@ -140,7 +140,7 @@
 
         clearInterval(timerInterval); // Stop the timer on success
         toast.success('Email verified successfully! Redirecting to login...');
-        setTimeout(() => location.href = './login.html', 2000);
+        setTimeout(() => location.href = './login.php', 2000);
 
       } catch (err) {
         toast.error(err.message || 'Verification failed.');

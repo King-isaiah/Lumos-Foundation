@@ -43,7 +43,7 @@
         </label>
 
         <div class="row-between">
-          <a href="./forgot-password.html" class="link-muted">Forgot password?</a>
+          <a href="./forgot-password.php" class="link-muted">Forgot password?</a>
         </div>
 
         <button type="submit" class="btn-primary" data-submit>
@@ -53,7 +53,7 @@
       </form>
 
       <p class="signup-line">
-        New here? <a href="./register.html">Create an account</a>
+        New here? <a href="./register.php">Create an account</a>
       </p>
     </section>
   </main>

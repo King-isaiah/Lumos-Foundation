@@ -32,7 +32,7 @@
     <section class="login-card register-card">
       <header>
         <h2>Create Account</h2>
-        <p>Already have an account? <a href="./login.html">Log in here</a></p>
+        <p>Already have an account? <a href="./login.php">Log in here</a></p>
       </header>
 
       <form id="registerForm" novalidate>
@@ -171,7 +171,7 @@
         // Toast success and redirect to verify page
         toast.success('Registration successful! Please verify your email.');
         setTimeout(() => {
-            location.href = `./verify.html?email=${encodeURIComponent(res.email)}`;
+            location.href = `./verify.php?email=${encodeURIComponent(res.email)}`;
         }, 2000);
 
       } catch (err) {

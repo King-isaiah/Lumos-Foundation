@@ -32,7 +32,7 @@
           <span class="btn-spinner" hidden></span>
         </button>
       </form>
-      <p class="signup-line"><a href="./login.html">Back to login</a></p>
+      <p class="signup-line"><a href="./login.php">Back to login</a></p>
     </section>
   </main>
 
@@ -61,7 +61,7 @@
         
         // Move to the step 2 page, passing the email in the URL
         setTimeout(() => {
-          location.href = `./reset-password.html?email=${encodeURIComponent(email)}`;
+          location.href = `./reset-password.php?email=${encodeURIComponent(email)}`;
         }, 1500);
 
       } catch (err) {
