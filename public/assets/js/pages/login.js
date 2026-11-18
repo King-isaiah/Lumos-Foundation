@@ -56,9 +56,9 @@ form.addEventListener('submit', async (e) => {
 
     // Role-based Redirect Logic
     if (data.user.role === 'admin' || data.user.role === 'super_admin') {
-        setTimeout(() => location.href = './admin/dashboard.html', 1500);
+        setTimeout(() => location.href = './admin/dashboard.php', 1500);
     } else {
-        setTimeout(() => location.href = './students/dashboard.html', 1500);
+        setTimeout(() => location.href = './students/dashboard.php', 1500);
     }
 
   } catch (err) {
