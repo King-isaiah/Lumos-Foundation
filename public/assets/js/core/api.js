@@ -3,15 +3,13 @@
  * Handles auth redirects, error surfacing, and request IDs.
  */
 
-// Dynamically calculate the path to ApiHandler.php based on the current page
-
 const getApiPath = () => {
   const path = window.location.pathname;
   // If we are inside an 'admin' OR 'students' folder
   if (path.includes('/admin/') || path.includes('/students/')) {
     return '../../class/ApiHandler.php';
   }
-  // If we are in the public root folder (e.g. login.html)
+  // If we are in the public root folder (e.g. login.php)
   return '../class/ApiHandler.php';
 };
 
@@ -26,7 +24,6 @@ export class ApiError extends Error {
 }
 
 export async function api(entity, action, { method = 'GET', id, body, query } = {}) {
-  // Using a relative URL directly prevents the "localhost/" subfolder issue
   let url = `${BASE}?entity=${entity}&action=${action}`;
   
   if (id !== undefined && id !== null) url += `&id=${id}`;
@@ -44,15 +41,17 @@ export async function api(entity, action, { method = 'GET', id, body, query } = 
   });
 
   let json;
-  try { json = await res.json(); }
-  catch { throw new ApiError('Unexpected response from server.', res.status); }
+  try { 
+    json = await res.json(); 
+  } catch { 
+    throw new ApiError('Unexpected response from server.', res.status); 
+  }
 
   if (res.status === 401) {
-    // Only redirect if we're not already on login/register page
+    // Updated to .php for the live server
     if (!location.pathname.includes('login') && !location.pathname.includes('register')) {
       sessionStorage.setItem('redirect_after_login', location.pathname);
-      // Use relative redirect to stay inside the subfolder
-      location.href = './login.html';
+      location.href = './login.php'; 
     }
     throw new ApiError(json.message || 'Please log in.', 401, json.requestId);
   }
