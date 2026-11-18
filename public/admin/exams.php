@@ -34,7 +34,7 @@
 <body>
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h1 class="page-title" style="margin: 0;">Manage Exams</h1>
-    <a href="./create-exam.html" class="btn-action" style="text-decoration: none; padding: 12px 24px; font-size: 15px;">+ Create New Exam</a>
+    <a href="./create-exam.php" class="btn-action" style="text-decoration: none; padding: 12px 24px; font-size: 15px;">+ Create New Exam</a>
   </div>
 
   <input type="text" id="searchInput" class="search-bar" placeholder="Search by exam title or subject...">
@@ -130,14 +130,14 @@
         if (ex.status === 'draft') {
             actionButtons = `
               <button class="action-icon activate" style="color: #10b981;" onclick="window.activateExam(${ex.id})" title="Publish & Activate Exam">${activateIcon}</button>
-              <a href="./view-questions.html?exam_id=${ex.id}" class="action-icon" title="Manage Questions">${questionIcon}</a>
-              <a href="./edit-exam.html?exam_id=${ex.id}" class="action-icon" title="Edit Exam">${editIcon}</a>
+              <a href="./view-questions.php?exam_id=${ex.id}" class="action-icon" title="Manage Questions">${questionIcon}</a>
+              <a href="./edit-exam.php?exam_id=${ex.id}" class="action-icon" title="Edit Exam">${editIcon}</a>
               <button class="action-icon" onclick="window.viewDetails(${ex.id})" title="View Analytics">${eyeIcon}</button>
               <button class="action-icon danger" onclick="window.deleteExam(${ex.id})" title="Delete Exam">${trashIcon}</button>
             `;
         } else {
             actionButtons = `
-              <a href="./view-questions.html?exam_id=${ex.id}" class="action-icon" title="View Questions">${questionIcon}</a>
+              <a href="./view-questions.php?exam_id=${ex.id}" class="action-icon" title="View Questions">${questionIcon}</a>
               <button class="action-icon" onclick="window.viewDetails(${ex.id})" title="View Analytics">${eyeIcon}</button>
               <span class="locked-badge" style="margin-left: 6px;">🔒 Locked</span>
             `;

@@ -71,7 +71,7 @@
         tbody.innerHTML = html;
         document.getElementById('avgScore').textContent = `${Math.round(totalScore / history.length)}%`;
       } catch (err) {
-        if (err instanceof ApiError && err.code === 401) location.href = '../login.html';
+        if (err instanceof ApiError && err.code === 401) location.href = '../login.php';
         else toast.error('Failed to load dashboard data.');
       }
     }

@@ -18,7 +18,7 @@
   <div class="admin-card" style="max-width: 900px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
       <h2 style="margin:0;">Question Builder</h2>
-      <a href="./exams.html" class="btn-action" style="text-decoration: none; font-size: 13px;">&larr; Back to Exams</a>
+      <a href="./exams.php" class="btn-action" style="text-decoration: none; font-size: 13px;">&larr; Back to Exams</a>
     </div>
     
     <!-- THIS IS THE BANNER YOU WANTED -->
@@ -93,7 +93,7 @@
         if (addedQuestions >= requiredQuestions) {
           toast.success('Required questions already reached. Redirecting...');
           setTimeout(() => {
-            window.location.href = `./exams.html`;
+            window.location.href = `./exams.php`;
           }, 2000); 
           return; 
         }
@@ -200,7 +200,7 @@
         if (addedQuestions + 1 >= requiredQuestions) {
           toast.success('Required questions reached! Redirecting to exams page...');
           setTimeout(() => {
-            window.location.href = `./exams.html`;
+            window.location.href = `./exams.php`;
           }, 2000);
         } else {
           toast.success('Question saved!');

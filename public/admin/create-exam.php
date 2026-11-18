@@ -12,7 +12,7 @@
   <div class="admin-card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
       <h2 style="margin: 0;">Create New Exam</h2>
-      <a href="./exams.html" class="btn-action" style="text-decoration: none; font-size: 14px; padding: 10px 20px;">&larr; Back to Exams</a>
+      <a href="./exams.php" class="btn-action" style="text-decoration: none; font-size: 14px; padding: 10px 20px;">&larr; Back to Exams</a>
     </div>
 
     <p style="color: var(--text-muted); margin-bottom: 30px;">Set the details, date, and prize pool for a new Lumos CBT exam.</p>
@@ -83,7 +83,7 @@
         const res = await api('exams', 'create', { method: 'POST', body: payload });
         toast.success('Exam created successfully!');
         // Redirect to the Manage Questions page
-        setTimeout(() => location.href = `./questions.html?exam_id=${res.id}`, 1000);
+        setTimeout(() => location.href = `./questions.php?exam_id=${res.id}`, 1000);
       } catch (err) {
         toast.error(err.message || 'Failed to create exam.');
         btn.disabled = false; btn.textContent = 'Create Exam';

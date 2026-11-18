@@ -27,7 +27,7 @@
     <h1 class="page-title" style="margin: 0;">Manage Questions</h1>
     <div>
       <a href="#" id="addQuestionLink" class="btn-action" style="text-decoration: none; margin-right: 10px; display: none;">+ Add New Question</a>
-      <a href="./exams.html" class="btn-action" style="text-decoration: none; background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted);">&larr; Back</a>
+      <a href="./exams.php" class="btn-action" style="text-decoration: none; background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted);">&larr; Back</a>
     </div>
   </div>
   
@@ -58,7 +58,7 @@
         const addLink = document.getElementById('addQuestionLink');
         if (isDraft) {
           addLink.style.display = 'inline-block';
-          addLink.href = `./questions.html?exam_id=${examId}`;
+          addLink.href = `./questions.php?exam_id=${examId}`;
         }
 
         // 3. Load Questions
@@ -94,7 +94,7 @@
           // DYNAMIC ACTION BUTTONS
           const actionHtml = isDraft 
             ? `<div class="action-btn-group">
-                 <a href="./edit-question.html?exam_id=${examId}&question_id=${q.id}" class="btn-edit-q" style="text-decoration: none;">Edit</a>
+                 <a href="./edit-question.php?exam_id=${examId}&question_id=${q.id}" class="btn-edit-q" style="text-decoration: none;">Edit</a>
                  <button class="btn-delete-q" onclick="window.deleteQuestion(${q.id})">Delete</button>
                </div>`
             : `<div class="action-btn-group"><span class="locked-text">🔒 Locked</span></div>`;

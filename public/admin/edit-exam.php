@@ -15,7 +15,7 @@
       <div>
         <a href="#" id="manageQuestionsLink" class="btn-action" style="text-decoration: none; margin-right: 10px;">Manage Questions</a>
         <!-- FIXED: Changed text and border color to #0f172a so it is visible on the beige background -->
-        <a href="./exams.html" class="btn-action" style="text-decoration: none; background: transparent; border: 1px solid #0f172a; color: #0f172a; font-weight: 600;">&larr; Back</a>
+        <a href="./exams.php" class="btn-action" style="text-decoration: none; background: transparent; border: 1px solid #0f172a; color: #0f172a; font-weight: 600;">&larr; Back</a>
       </div>
     </div>
     
@@ -69,9 +69,9 @@
 
     if (!examId) {
       toast.error("No exam selected.");
-      setTimeout(() => location.href = './exams.html', 1000);
+      setTimeout(() => location.href = './exams.php', 1000);
     } else {
-      document.getElementById('manageQuestionsLink').href = `./view-questions.html?exam_id=${examId}`;
+      document.getElementById('manageQuestionsLink').href = `./view-questions.php?exam_id=${examId}`;
     }
 
     async function loadExam() {
@@ -114,7 +114,7 @@
       try {
         await api('exams', 'update', { method: 'PUT', id: examId, body: payload });
         toast.success('Exam updated successfully!');
-        setTimeout(() => location.href = './exams.html', 1000);
+        setTimeout(() => location.href = './exams.php', 1000);
       } catch (err) {
         toast.error(err.message || 'Failed to update exam.');
         btn.disabled = false; btn.textContent = 'Update Exam Details';

@@ -48,9 +48,9 @@
     <h2>Quick Links</h2>
     <p style="color: var(--forest); margin-bottom: 20px; font-size: 14px;">Jump straight to what needs your attention.</p>
     <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-      <a href="./exams.html" class="btn-action" style="text-decoration: none; display: inline-block;">Create New Exam</a>
-      <a href="./complaints.html" class="btn-action" style="text-decoration: none; display: inline-block;">View Complaints</a>
-      <a href="./payouts.html" class="btn-action" style="text-decoration: none; display: inline-block;">Process Payouts</a>
+      <a href="./exams.php" class="btn-action" style="text-decoration: none; display: inline-block;">Create New Exam</a>
+      <a href="./complaints.php" class="btn-action" style="text-decoration: none; display: inline-block;">View Complaints</a>
+      <a href="./payouts.php" class="btn-action" style="text-decoration: none; display: inline-block;">Process Payouts</a>
     </div>
   </div>
 

@@ -72,7 +72,7 @@
         renderQuestion(0);
       } catch (err) {
         toast.error(err.message);
-        setTimeout(() => window.location.href = './dashboard.html', 2000);
+        setTimeout(() => window.location.href = './dashboard.php', 2000);
       }
     }
 
@@ -150,7 +150,7 @@
         
         clearInterval(timerInterval);
         toast.success(`Exam submitted! Score: ${res.score}%`);
-        setTimeout(() => window.location.href = './dashboard.html', 2500);
+        setTimeout(() => window.location.href = './dashboard.php', 2500);
 
       } catch (err) {
         toast.error('Submission failed. Please try again.');

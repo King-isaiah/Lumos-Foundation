@@ -240,7 +240,7 @@
     // ADDED: This handles the "Trigger Payouts" button click
     window.payout = (id) => {
       // Redirects to the payouts page where you enter the bank details
-      window.location.href = './payouts.html';
+      window.location.href = './payouts.php';
     };
 
     // Initial Load

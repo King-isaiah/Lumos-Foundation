@@ -66,10 +66,10 @@
 
     if (!examId || !questionId) {
       toast.error("Missing exam or question ID.");
-      setTimeout(() => location.href = './exams.html', 1000);
+      setTimeout(() => location.href = './exams.php', 1000);
     }
 
-    document.getElementById('backLink').href = `./view-questions.html?exam_id=${examId}`;
+    document.getElementById('backLink').href = `./view-questions.php?exam_id=${examId}`;
     document.getElementById('examIdInput').value = examId;
     document.getElementById('questionIdInput').value = questionId;
 
@@ -139,7 +139,7 @@
       try {
         await api('questions', 'update', { method: 'PUT', id: questionId, body: payload });
         toast.success('Question updated successfully!');
-        setTimeout(() => location.href = `./view-questions.html?exam_id=${examId}`, 1000);
+        setTimeout(() => location.href = `./view-questions.php?exam_id=${examId}`, 1000);
       } catch (err) {
         toast.error(err.message);
         btn.disabled = false;
