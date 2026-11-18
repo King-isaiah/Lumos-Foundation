@@ -31,7 +31,7 @@ final class Config {
                 'host' => 'sql304.infinityfree.com',
                 'name' => 'if0_43093237_lumos_cbt',
                 'user' => 'if0_43093237',
-                'pass' => $secrets['db_pass'] ?? 'YOUR_IF_PASSWORD',
+                'pass' => $secrets['db_pass'] ?? 'TuVpWwSq9mco2',
             ];
     }
 
