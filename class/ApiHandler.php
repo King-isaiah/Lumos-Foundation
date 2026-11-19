@@ -72,6 +72,7 @@ class ApiHandler {
         'verify_manual' => ['entity' => 'payments',   'method' => 'manualVerify', 'needs_user' => false],
         'create_manual' => ['entity' => 'payments',   'method' => 'manualCreate', 'needs_user' => false],
         'toggle_status' => ['entity' => 'users',      'method' => 'toggleStatus', 'needs_user' => false],
+        'verify'        => ['entity' => 'payments',   'method' => 'verifyTransaction', 'needs_user' => false],
     ];
 
     private const AUTH_TASKS = [
@@ -177,6 +178,7 @@ class ApiHandler {
             case 'getAnalytics':   $this->getExamAnalytics(); return;
             case 'getOpenExams':   $this->respond(true, (new Payment())->getOpenExams(), 'OK'); return;
             case 'getAllUsers':    $this->respond(true, (new Payment())->getAllUsers(), 'OK'); return;
+            case 'getActiveExams': $this->respond(true, (new Exam())->getActiveExams(), 'Active exams loaded.'); return;            
             case 'getStudentStats': $this->respond(true, (new Dashboard())->getStudentStats((int)$_SESSION['user_id']), 'Stats loaded.'); return;
             default:
                 $this->respond(false, null, 'Invalid GET action.', 400);

@@ -146,7 +146,15 @@ class Exam extends Database {
 
         return (int)($totalRevenue * $pct);
     }
-
+    public function getActiveExams(): array {
+        return $this->fetchAll(
+            "SELECT id, slug, title, subject, description, rules_text, price_kobo, duration_minutes, 
+                    question_count, starts_at, ends_at, status, banner_url, prize_pool_pct
+             FROM exams 
+             WHERE status = 'open'
+             ORDER BY starts_at ASC"
+        );
+    }
     public function getAnalytics(int $id): array {
         $exam = $this->getById($id);
         if (!$exam) throw new Exception('Exam not found.', 404);

@@ -34,7 +34,8 @@ class Payment extends Database {
         ]);
 
         $paystack = new Paystack();
-        $callbackUrl = Config::appUrl() . '/public/payment-callback.html?reference=' . $reference;
+        // FIXED: Pointing to the new callback location in the students folder
+        $callbackUrl = Config::appUrl() . '/public/students/payment-callback.php?reference=' . $reference;
         
         $result = $paystack->initialize($user['email'], $exam['price_kobo'], $reference, $callbackUrl);
         
@@ -128,5 +129,42 @@ class Payment extends Database {
 
     public function getAllUsers(): array {
         return $this->fetchAll("SELECT id, first_name, last_name, email FROM users WHERE role = 'user'");
+    }
+    
+    /**
+     * Verifies a payment with Paystack and updates the database.
+     * This is called from the callback page.
+     */
+    public function verifyTransaction(string $reference): array {
+        $payment = $this->fetchOne("SELECT * FROM payments WHERE reference = ?", [$reference]);
+        if (!$payment) {
+            throw new Exception('Payment record not found.', 404);
+        }
+
+        // Idempotency: If already success, return early
+        if ($payment['status'] === 'success') {
+            return ['status' => 'success', 'message' => 'Payment already verified.'];
+        }
+
+        $paystack = new Paystack();
+        $verified = $paystack->verify($reference);
+
+        if ($verified && $verified['status'] === 'success' && $verified['amount'] == $payment['amount_kobo']) {
+            // Payment is legitimate. Update the DB.
+            $this->update('payments', [
+                'status' => 'success',
+                'gateway_ref' => $verified['id'],
+                'paid_at' => date('Y-m-d H:i:s'),
+                'gateway_response_json' => json_encode($verified)
+            ], 'id = ?', [$payment['id']]);
+
+            Logger::info('Payment verified and recorded', ['payment_id' => $payment['id'], 'reference' => $reference]);
+            
+            return ['status' => 'success', 'message' => 'Payment verified successfully.', 'exam_id' => $payment['exam_id']];
+        }
+
+        // Verification failed
+        Logger::error('Payment verification failed', ['reference' => $reference, 'response' => $verified]);
+        throw new Exception('Payment verification failed. Please contact support if you were debited.', 400);
     }
 }

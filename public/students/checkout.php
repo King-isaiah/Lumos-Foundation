@@ -21,6 +21,7 @@
     
     .btn-pay { background: var(--burnt-orange); color: var(--cream); padding: 14px; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.3s; text-align: center; }
     .btn-pay:hover { background: #e66a15; transform: translateY(-2px); }
+    .btn-pay:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
   </style>
 </head>
 <body>
@@ -40,7 +41,7 @@
 
     async function loadExams() {
       try {
-        const exams = await api('exams', 'getAll'); // Assuming this fetches open exams
+        const exams = await api('exams', 'getActiveExams'); 
         if (exams.length === 0) {
           grid.innerHTML = `<p style="color: var(--warm-sand);">No active exams available right now.</p>`;
           return;
@@ -56,7 +57,7 @@
               <div style="font-size: 13px; color: var(--warm-sand); margin-bottom: 20px;">
                 ⏱ ${exam.duration_minutes} mins • ${exam.question_count} Questions
               </div>
-              <button class="btn-pay" onclick="payExam(${exam.id})">Pay & Enter</button>
+              <button class="btn-pay" onclick="payExam(${exam.id}, this)">Pay & Enter</button>
             </div>
           `;
         }).join('');
@@ -65,13 +66,31 @@
       }
     }
 
-    window.payExam = async (examId) => {
+    window.payExam = async (examId, btn) => {
+      const originalText = btn.textContent;
+      
       try {
-        toast.info('Initializing payment...');
-        const res = await api('payments', 'initialize', { method: 'POST', body: { exam_id: examId } });
+        btn.disabled = true;
+        btn.textContent = 'Initializing...';
+        
+        toast.info('Connecting to Paystack...');
+        
+        // FIXED: Changed action from 'initialize' to 'create'
+        const res = await api('payments', 'create', { method: 'POST', body: { exam_id: examId } });
+        
+        btn.textContent = 'Redirecting...';
         window.location.href = res.url;
+        
       } catch (err) {
-        toast.error(err.message);
+        if (err.message.includes('already paid')) {
+            toast.error('You have already paid for this exam. Check your inventory.');
+            setTimeout(() => window.location.href = './inventory.php', 2000);
+        } else {
+            toast.error(err.message);
+        }
+        
+        btn.disabled = false;
+        btn.textContent = originalText;
       }
     };
 
