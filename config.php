@@ -44,7 +44,7 @@ final class Config {
     }
 
     public static function appUrl(): string {
-        return self::isLocal() ? 'http://localhost/Lumos-Foundation' : 'https://lumosfoundation.infinityfreeapp.com';
+        return self::isLocal() ? 'http://localhost/Lumos-Foundation' : 'https://lumos-foundation.infy.click';
     }
 
     public static function mail(): array {
@@ -52,8 +52,9 @@ final class Config {
         return [
             'provider' => 'brevo',
             'api_key'  => $secrets['brevo_key'] ?? 'YOUR_BREVO_KEY',
-            'from'     => 'noreply@lumosfoundation.org',
-            'from_name'=> 'Lumos Foundation',
+            'from'     => 'eshiozemheafuwape@gmail.com',
+            'from_name'=> 'kingisaiah Dev',
+            // 'from_name'=> 'Lumos Foundation',
         ];
     }
 
