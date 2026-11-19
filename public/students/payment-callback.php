@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <title>Verifying Payment — Lumos</title>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/base.css">
-  <link rel="stylesheet" href="./assets/css/toast.css">
+  <!-- FIXED: Added ../ to point to public/assets/css/ -->
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/toast.css">
   <style>
     body { background: var(--forest-green); color: var(--cream); font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
     .status-card { text-align: center; background: rgba(244, 238, 223, 0.05); border: 1px solid var(--olive-green); padding: 40px; border-radius: 16px; max-width: 400px; }
     .status-card h1 { font-family: 'Fraunces'; margin-bottom: 20px; }
     .status-card p { color: var(--warm-sand); margin-bottom: 30px; }
     
-    /* Spinner for verification state */
     .spinner { width: 40px; height: 40px; border: 4px solid rgba(244, 238, 223, 0.2); border-top-color: var(--burnt-orange); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
@@ -25,8 +25,9 @@
   </div>
 
   <script type="module">
-    import { api, ApiError } from './assets/js/core/api.js';
-    import { toast } from './assets/js/core/toast.js';
+    // FIXED: Added ../ to point to public/assets/js/core/
+    import { api, ApiError } from '../assets/js/core/api.js';
+    import { toast } from '../assets/js/core/toast.js';
 
     const urlParams = new URLSearchParams(window.location.search);
     const reference = urlParams.get('reference');
@@ -39,33 +40,51 @@
         return;
       }
 
-      try {
-        // Call the new backend endpoint to verify the payment
-        const response = await api('payments', 'verify', { 
-          method: 'POST', 
-          body: { reference: reference } 
-        });
+      let attempts = 0;
+      const maxAttempts = 5; // Try for ~15 seconds (5 attempts * 3s)
 
-        // If we get here, the payment was successful
-        renderSuccessModal(response.exam_id);
+      const checkStatus = async () => {
+        attempts++;
+        try {
+          // Call the verify endpoint
+          const response = await api('payments', 'verify', { 
+            method: 'POST', 
+            body: { reference: reference } 
+          });
 
-      } catch (err) {
-        const errorMsg = err.message || 'Verification failed. Please contact support.';
-        statusCard.innerHTML = `
-          <h1 style="color:#ef4444;">Payment Failed</h1>
-          <p>${errorMsg}</p>
-          <a href="./students/checkout.php" class="btn-primary" style="display:inline-block; margin-top:20px;">Try Again</a>
-        `;
-        toast.error(errorMsg);
+          if (response.status === 'success') {
+            renderSuccessModal(response.exam_id);
+            return true;
+          }
+        } catch (err) {
+          // If 400 error (payment not processed yet) or network error, we ignore and retry
+        }
+
+        if (attempts >= maxAttempts) {
+          // If we fail after 5 attempts, fallback to inventory (the webhook probably caught it)
+          statusCard.innerHTML = `
+            <h1 style="color:#f59e0b;">Taking Longer Than Expected</h1>
+            <p>We are still confirming your payment. Please check your inventory in a moment, or contact support if you were debited.</p>
+            <a href="./inventory.php" class="btn-go-inventory" style="display:inline-block; margin-top:20px; padding: 10px 20px; background: #3b82f6; color: white; border-radius: 8px; text-decoration: none;">Go to Inventory</a>
+          `;
+          return true;
+        }
+
+        // Wait 3 seconds before trying again
+        return new Promise(resolve => setTimeout(() => resolve(false), 3000));
+      };
+
+      // Polling loop
+      let done = false;
+      while (!done) {
+        done = await checkStatus();
       }
     }
 
     function renderSuccessModal(examId) {
       const statusCard = document.getElementById('statusCard');
-      // Replace the loading content with the success UI
       statusCard.innerHTML = `
         <style>
-          /* CSS for the success modal, scoped to this card */
           .success-check { width: 80px; height: 80px; margin: 0 auto 20px; position: relative; }
           .success-check-circle { stroke-dasharray: 251; stroke-dashoffset: 251; animation: drawCircle 0.6s ease-out forwards; }
           .success-check-mark { stroke-dasharray: 50; stroke-dashoffset: 50; animation: drawMark 0.4s 0.4s ease-out forwards; }
@@ -88,8 +107,9 @@
         <p>You have successfully paid for the exam. You can now enter the exam room or view your inventory.</p>
         
         <div class="success-actions">
-          <a href="./students/inventory.php" class="btn-go-inventory">Go to Inventory</a>
-          <a href="./students/exam-room.php?attempt_id=${examId}" class="btn-start-exam">Start Exam</a>
+          <!-- FIXED: These should go to the students folder, so they are correct as ./ -->
+          <a href="./inventory.php" class="btn-go-inventory">Go to Inventory</a>
+          <a href="./exam-room.php?attempt_id=${examId}" class="btn-start-exam">Start Exam</a>
         </div>
       `;
     }

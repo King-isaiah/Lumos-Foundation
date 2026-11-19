@@ -21,6 +21,7 @@ class Paystack {
         $ch = curl_init();
         // FIX: Bypass SSL for InfinityFree and set timeout
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); // Fail fast if connection cannot be made
         curl_setopt($ch, CURLOPT_TIMEOUT, 15);
         
         curl_setopt($ch, CURLOPT_URL, "https://api.paystack.co/transaction/initialize");
@@ -56,7 +57,8 @@ class Paystack {
         $ch = curl_init();
         // FIX: Bypass SSL for InfinityFree and set timeout
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); // Fail fast
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         
         curl_setopt($ch, CURLOPT_URL, "https://api.paystack.co/transaction/verify/{$reference}");
         curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer {$this->secretKey}"]);
@@ -68,7 +70,7 @@ class Paystack {
             $curlError = curl_error($ch);
             curl_close($ch);
             Logger::error('cURL Error during Paystack Verify', ['curl_error' => $curlError]);
-            return null; // Return null so the verifyTransaction method handles it
+            return null; 
         }
 
         curl_close($ch);
@@ -81,7 +83,6 @@ class Paystack {
     }
     
     public function createTransferRecipient(string $name, string $accountNumber, string $bankCode): string {
-        // ... (Keep your existing createTransferRecipient code exactly as it is) ...
         $fields = [
             'type' => 'nuban',
             'name' => $name,
@@ -91,7 +92,8 @@ class Paystack {
         ];
 
         $ch = curl_init("https://api.paystack.co/transferrecipient");
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Added SSL bypass
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -109,7 +111,6 @@ class Paystack {
     }
 
     public function initiateTransfer(int $amountKobo, string $recipientCode, string $reason): array {
-        // ... (Keep your existing initiateTransfer code exactly as it is) ...
         $fields = [
             'source' => 'balance',
             'amount' => $amountKobo,
@@ -118,7 +119,8 @@ class Paystack {
         ];
 
         $ch = curl_init("https://api.paystack.co/transfer");
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Added SSL bypass
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
