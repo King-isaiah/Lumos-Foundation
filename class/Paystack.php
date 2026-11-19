@@ -55,10 +55,11 @@ class Paystack {
 
     public function verify(string $reference): ?array {
         $ch = curl_init();
-        // FIX: Bypass SSL for InfinityFree and set timeout
+        
+        // FIX: Bypass SSL for InfinityFree and increase timeouts
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); // Fail fast
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15); // Give InfinityFree 15s to connect
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);        // Allow up to 30s total for the request
         
         curl_setopt($ch, CURLOPT_URL, "https://api.paystack.co/transaction/verify/{$reference}");
         curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer {$this->secretKey}"]);
@@ -76,9 +77,12 @@ class Paystack {
         curl_close($ch);
 
         $data = json_decode($response, true);
-        if ($data && isset($data['status']) && $data['status'] && $data['data']['status'] === 'success') {
+        
+        // FIX: Ensure the data structure exists before checking 'status'
+        if ($data && isset($data['status']) && $data['status'] === true && isset($data['data']['status']) && $data['data']['status'] === 'success') {
             return $data['data'];
         }
+        
         return null;
     }
     

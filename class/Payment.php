@@ -131,11 +131,14 @@ class Payment extends Database {
         return $this->fetchAll("SELECT id, first_name, last_name, email FROM users WHERE role = 'user'");
     }
     
-    /**
-     * Verifies a payment with Paystack and updates the database.
-     * This is called from the callback page.
-     */
-    public function verifyTransaction(string $reference): array {
+      
+    public function verifyTransaction(array $input): array {
+        $reference = $input['reference'] ?? '';
+        
+        if (!$reference) {
+            throw new Exception('Payment reference is required.', 400);
+        }
+
         $payment = $this->fetchOne("SELECT * FROM payments WHERE reference = ?", [$reference]);
         if (!$payment) {
             throw new Exception('Payment record not found.', 404);
@@ -143,7 +146,7 @@ class Payment extends Database {
 
         // Idempotency: If already success, return early
         if ($payment['status'] === 'success') {
-            return ['status' => 'success', 'message' => 'Payment already verified.'];
+            return ['status' => 'success', 'message' => 'Payment already verified.', 'exam_id' => $payment['exam_id']];
         }
 
         $paystack = new Paystack();
