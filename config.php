@@ -51,7 +51,7 @@ final class Config {
         $secrets = self::getSecrets();
         return [
             'provider' => 'brevo',
-            'api_key'  => $secrets['brevo_key'] ?? 'YOUR_BREVO_KEY',
+            'api_key'  => $secrets['brevo_key'],
             'from'     => 'eshiozemheafuwape@gmail.com',
             'from_name'=> 'kingisaiah Dev',
             // 'from_name'=> 'Lumos Foundation',

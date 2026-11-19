@@ -72,7 +72,7 @@
           body: { task: 'request_reset', email }
         });
         
-        toast.success('If an account exists, a code has been sent.');
+        toast.success('A code has been sent.');
         
         setTimeout(() => {
           location.href = `./reset-password.php?email=${encodeURIComponent(email)}`;

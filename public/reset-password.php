@@ -27,6 +27,14 @@
           <span>6-Digit Code</span>
           <input type="text" name="code" required placeholder="123456" maxlength="6">
         </label>
+        
+        <!-- COUNTDOWN TIMER START -->
+        <div id="timerBox" style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 15px; margin-top: -5px;">
+          <span style="color: var(--muted);">Code expires in:</span>
+          <strong id="countdown" style="color: var(--brand-glow); font-weight: 600;">06:00</strong>
+        </div>
+        <!-- COUNTDOWN TIMER END -->
+
         <button type="submit" class="btn-primary" id="btnVerify">Verify Code</button>
       </form>
 
@@ -50,7 +58,7 @@
         const gsap = window.gsap;
         gsap.from(".login-hero", { x: -100, opacity: 0, duration: 1, ease: "power3.out" });
         gsap.from("#resetCard", { x: 100, opacity: 0, duration: 1, ease: "power3.out", delay: 0.2 });
-        gsap.from("#verifyForm label, #verifyForm button", { y: 20, opacity: 0, duration: 0.5, stagger: 0.1, delay: 0.6 });
+        gsap.from("#verifyForm label, #timerBox, #verifyForm button", { y: 20, opacity: 0, duration: 0.5, stagger: 0.1, delay: 0.6 });
     });
 
     // --- YOUR ORIGINAL FUNCTIONALITY ---
@@ -63,7 +71,47 @@
     }
 
     let resetToken = null;
+    let timerInterval; // Variable to hold the timer
 
+    // --- COUNTDOWN TIMER LOGIC ---
+    function startCountdown(duration) {
+        let timer = duration, minutes, seconds;
+        const display = document.getElementById('countdown');
+        const timerBox = document.getElementById('timerBox');
+        const btnVerify = document.getElementById('btnVerify');
+        
+        timerInterval = setInterval(function () {
+            minutes = parseInt(timer / 60, 10);
+            seconds = parseInt(timer % 60, 10);
+
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            display.textContent = minutes + ":" + seconds;
+
+            // Change color to warning red when less than 1 minute is left
+            if (timer <= 60) {
+                display.style.color = "#ef4444"; 
+            }
+
+            if (--timer < 0) {
+                clearInterval(timerInterval);
+                display.textContent = "00:00";
+                timerBox.innerHTML = `<span style="color: #ef4444; font-weight: 600;">Code expired. Please request a new one.</span>`;
+                
+                // Disable the verify button
+                btnVerify.disabled = true;
+                btnVerify.style.opacity = '0.5';
+                btnVerify.style.cursor = 'not-allowed';
+                btnVerify.textContent = 'Code Expired';
+            }
+        }, 1000);
+    }
+
+    // Start the timer for 6 minutes (360 seconds) when the page loads
+    startCountdown(360);
+
+    // --- VERIFY FORM SUBMIT ---
     const verifyForm = document.getElementById('verifyForm');
     verifyForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -80,6 +128,9 @@
         resetToken = res.reset_token;
         toast.success('Code verified! Please enter a new password.');
         
+        // Stop the countdown timer because the code is successfully verified!
+        clearInterval(timerInterval);
+
         // GSAP Morphing Transition
         const gsap = window.gsap;
         gsap.to(verifyForm, { x: -50, opacity: 0, duration: 0.4, onComplete: () => {
@@ -93,6 +144,7 @@
       }
     });
 
+    // --- NEW PASSWORD FORM SUBMIT ---
     const newPasswordForm = document.getElementById('newPasswordForm');
     newPasswordForm.addEventListener('submit', async (e) => {
       e.preventDefault();

@@ -3,11 +3,16 @@ require_once __DIR__ . '/Database.php';
 require_once __DIR__ . '/Validator.php';
 require_once __DIR__ . '/User.php';
 require_once __DIR__ . '/Mailer.php';
+require_once __DIR__ . '/../config.php'; // Ensure Config is loaded
 
 class Auth extends Database {
 
     public function __construct() {
         parent::__construct();
+        
+        // Force Lagos Timezone
+        date_default_timezone_set('Africa/Lagos');
+
         if (session_status() === PHP_SESSION_NONE) {
             session_set_cookie_params([
                 'lifetime' => 0,
@@ -45,7 +50,6 @@ class Auth extends Database {
             throw new Exception('Your account is not active. Please contact support.', 403);
         }
 
-        // --- NEW: Check if Email is Verified ---
         if (empty($user['email_verified_at'])) {
             throw new Exception('Please verify your email address before logging in. Check your inbox for the code.', 403);
         }
@@ -89,8 +93,10 @@ class Auth extends Database {
         return (new User())->getById((int)$_SESSION['user_id']);
     }
 
+    // ---------------------------------------------------------
+    // REQUEST PASSWORD RESET (Step 1) - Fixed to 6 Mins
+    // ---------------------------------------------------------
     public function requestPasswordReset(array $input): array {
-        // ... [UNCHANGED]
         $data = (new Validator($input))->required('email')->email('email')->validate();
         $email = strtolower($data['email']);
 
@@ -102,10 +108,11 @@ class Auth extends Database {
 
         if ($user) {
             $code = (string)random_int(100000, 999999);
+            
             $this->insert('password_resets', [
                 'user_id'    => $user['id'],
                 'code_hash'  => password_hash($code, PASSWORD_BCRYPT, ['cost' => 10]),
-                'expires_at' => date('Y-m-d H:i:s', time() + 600),
+                'expires_at' => date('Y-m-d H:i:s', time() + 360), // <--- 360 seconds = 6 minutes
             ]);
 
             try {
@@ -119,8 +126,10 @@ class Auth extends Database {
         return ['message' => 'If an account exists for that email, a reset code has been sent.'];
     }
 
+    // ---------------------------------------------------------
+    // VERIFY RESET CODE (Step 2) - Fixed Timezone
+    // ---------------------------------------------------------
     public function verifyResetCode(array $input): array {
-        // ... [UNCHANGED]
         $data = (new Validator($input))
             ->required('email', 'code')
             ->email('email')
@@ -130,11 +139,13 @@ class Auth extends Database {
         $user = (new User())->getByEmail(strtolower($data['email']));
         if (!$user) throw new Exception('Invalid or expired code.', 400);
 
+        $now = date('Y-m-d H:i:s');
+
         $row = $this->fetchOne(
             "SELECT * FROM password_resets
-             WHERE user_id = ? AND used_at IS NULL AND expires_at > NOW()
+             WHERE user_id = ? AND used_at IS NULL AND expires_at > ?
              ORDER BY id DESC LIMIT 1",
-            [$user['id']]
+            [$user['id'], $now]
         );
 
         if (!$row) throw new Exception('Invalid or expired code.', 400);
@@ -155,8 +166,10 @@ class Auth extends Database {
         return ['reset_token' => $token];
     }
 
+    // ---------------------------------------------------------
+    // RESET PASSWORD (Step 3) - Fixed Timezone
+    // ---------------------------------------------------------
     public function resetPassword(array $input): array {
-        // ... [UNCHANGED]
         $data = (new Validator($input))
             ->required('email', 'reset_token', 'new_password')
             ->email('email')
@@ -166,11 +179,13 @@ class Auth extends Database {
         $user = (new User())->getByEmail(strtolower($data['email']));
         if (!$user) throw new Exception('Invalid reset session.', 400);
 
+        $now = date('Y-m-d H:i:s');
+
         $row = $this->fetchOne(
             "SELECT * FROM password_resets
-             WHERE user_id = ? AND used_at IS NULL AND expires_at > NOW() AND token_hash IS NOT NULL
+             WHERE user_id = ? AND used_at IS NULL AND expires_at > ? AND token_hash IS NOT NULL
              ORDER BY id DESC LIMIT 1",
-            [$user['id']]
+            [$user['id'], $now]
         );
 
         if (!$row || !password_verify($data['reset_token'], $row['token_hash'])) {
@@ -178,14 +193,16 @@ class Auth extends Database {
         }
 
         (new User())->setPassword((int)$user['id'], $data['new_password']);
-        $this->executeQuery("UPDATE password_resets SET used_at = NOW() WHERE id = ?", [$row['id']]);
+        $this->executeQuery("UPDATE password_resets SET used_at = ? WHERE id = ?", [$now, $row['id']]);
 
         Logger::security('Password reset completed', ['user_id' => $user['id']]);
         return ['message' => 'Password updated. You can now log in.'];
     }
 
+    // ---------------------------------------------------------
+    // VERIFY EMAIL - Fixed user_id column
+    // ---------------------------------------------------------
     public function verifyEmail(array $input): array {
-        // ... [UNCHANGED]
         $data = (new Validator($input))
             ->required('email', 'code')
             ->email('email')
@@ -198,11 +215,14 @@ class Auth extends Database {
             throw new Exception('This email is already verified.', 400);
         }
 
+        $now = date('Y-m-d H:i:s');
+
+        // FIXED: Changed unique_id to user_id to match the table structure
         $record = $this->fetchOne(
             "SELECT * FROM email_verifications 
-             WHERE unique_id = ? AND used_at IS NULL 
+             WHERE user_id = ? AND used_at IS NULL 
              ORDER BY id DESC LIMIT 1", 
-            [$user['unique_id']]
+            [$user['id']]
         );
 
         if (!$record) throw new Exception('No verification code found. Please register again.', 400);
@@ -215,7 +235,7 @@ class Auth extends Database {
             throw new Exception('Invalid verification code.', 400);
         }
 
-        $this->executeQuery("UPDATE email_verifications SET used_at = NOW() WHERE id = ?", [$record['id']]);
+        $this->executeQuery("UPDATE email_verifications SET used_at = ? WHERE id = ?", [$now, $record['id']]);
         (new User())->markEmailVerified($user['id']);
 
         return ['message' => 'Email verified successfully.'];
