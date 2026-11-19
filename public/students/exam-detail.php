@@ -7,15 +7,24 @@
   <link rel="stylesheet" href="./assets/css/base.css">
   <link rel="stylesheet" href="./assets/css/toast.css">
   <style>
+    :root {
+      --forest-green: #1F3B2C;
+      --olive-green: #556B2F;
+      --burnt-orange: #CC5500;
+      --clay: #C2643F;
+      --warm-sand: #ECE2CF;
+      --cream: #F4EEDF;
+    }
+    body { background: var(--forest-green); color: var(--cream); font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
     .container { max-width: 800px; margin: 60px auto; padding: 20px; }
-    .card { background: #0f142e; border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 40px; }
-    h1 { font: 700 36px 'Fraunces'; margin: 0 0 10px; }
-    .badge { display: inline-block; background: rgba(57, 255, 20, 0.15); color: #39ff14; padding: 6px 12px; border-radius: 20px; font-weight: 600; margin-bottom: 20px; }
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0; border-top: 1px solid rgba(255,255,255,.05); padding-top: 20px; }
-    .info-item label { display: block; font-size: 13px; color: #8b8fa3; margin-bottom: 4px; }
-    .info-item span { font-size: 18px; font-weight: 600; }
-    .btn-pay { display: block; width: 100%; padding: 16px; background: #39ff14; color: #0a0e27; text-align: center; border: none; border-radius: 10px; font: 600 16px 'Inter'; cursor: pointer; transition: 0.2s; }
-    .btn-pay:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(57, 255, 20, 0.2); }
+    .card { background: rgba(244, 238, 223, 0.05); border: 1px solid var(--olive-green); border-radius: 16px; padding: 40px; }
+    h1 { font: 700 36px 'Fraunces'; margin: 0 0 10px; color: var(--cream); }
+    .badge { display: inline-block; background: rgba(204, 85, 0, 0.2); color: var(--burnt-orange); padding: 6px 12px; border-radius: 20px; font-weight: 600; margin-bottom: 20px; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0; border-top: 1px solid rgba(244, 238, 223, 0.1); padding-top: 20px; }
+    .info-item label { display: block; font-size: 13px; color: var(--warm-sand); margin-bottom: 4px; }
+    .info-item span { font-size: 18px; font-weight: 600; color: var(--cream); }
+    .btn-pay { display: block; width: 100%; padding: 16px; background: var(--burnt-orange); color: var(--cream); text-align: center; border: none; border-radius: 10px; font: 600 16px 'Inter'; cursor: pointer; transition: 0.2s; }
+    .btn-pay:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(204, 85, 0, 0.2); background: #e66a15; }
   </style>
 </head>
 <body>
@@ -35,14 +44,13 @@
 
     async function loadExam() {
       try {
-        // Assuming you add getBySlug to Exam API
         const exam = await api('exams', 'getBySlug', { query: { slug } });
         const price = (exam.price_kobo / 100).toLocaleString();
         
         card.innerHTML = `
           <div class="badge">${exam.status.toUpperCase()}</div>
           <h1>${exam.title}</h1>
-          <p style="color: #8b8fa3; font-size: 16px;">${exam.description || 'No description provided.'}</p>
+          <p style="color: var(--warm-sand); font-size: 16px;">${exam.description || 'No description provided.'}</p>
           
           <div class="info-grid">
             <div class="info-item"><label>Subject</label><span>${exam.subject}</span></div>
@@ -60,7 +68,7 @@
           btn.disabled = true;
           try {
             const res = await api('payments', 'initialize', { method: 'POST', body: { exam_id: exam.id } });
-            window.location.href = res.url; // Redirect to Paystack
+            window.location.href = res.url;
           } catch (err) {
             toast.error(err.message);
             btn.textContent = `Pay ₦${price} & Enter Exam`;

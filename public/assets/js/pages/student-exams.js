@@ -38,7 +38,7 @@ async function loadExams() {
             </div>
           </div>
           
-          <a href="./exam-detail.html?slug=${exam.slug}" class="btn-view">View Details</a>
+          <a href="./exam-detail.php?slug=${exam.slug}" class="btn-view">View Details</a>
         </div>
       `;
     }).join('');

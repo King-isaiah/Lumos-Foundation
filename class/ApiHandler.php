@@ -177,6 +177,7 @@ class ApiHandler {
             case 'getAnalytics':   $this->getExamAnalytics(); return;
             case 'getOpenExams':   $this->respond(true, (new Payment())->getOpenExams(), 'OK'); return;
             case 'getAllUsers':    $this->respond(true, (new Payment())->getAllUsers(), 'OK'); return;
+            case 'getStudentStats': $this->respond(true, (new Dashboard())->getStudentStats((int)$_SESSION['user_id']), 'Stats loaded.'); return;
             default:
                 $this->respond(false, null, 'Invalid GET action.', 400);
         }

@@ -3,40 +3,49 @@
 <head>
   <meta charset="utf-8">
   <title>Exam in Progress — Lumos</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:wght@500;700&display=swap" rel="stylesheet">
   <style>
-    body { background: #f4f6f9; color: #0a0e27; margin: 0; font-family: 'Inter', sans-serif; }
-    .header { background: #0a0e27; color: #fff; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
-    .timer { font-size: 20px; font-weight: 700; color: #fff; background: #ef4444; padding: 8px 16px; border-radius: 8px; }
+    :root {
+      --forest-green: #1F3B2C;
+      --olive-green: #556B2F;
+      --burnt-orange: #CC5500;
+      --clay: #C2643F;
+      --warm-sand: #ECE2CF;
+      --cream: #F4EEDF;
+    }
+    body { background: var(--forest-green); color: var(--cream); margin: 0; font-family: 'Inter', sans-serif; }
+    .header { background: rgba(31, 59, 44, 0.95); border-bottom: 1px solid var(--olive-green); color: var(--cream); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+    .timer { font-size: 20px; font-weight: 700; color: var(--cream); background: var(--burnt-orange); padding: 8px 16px; border-radius: 8px; }
     
     .layout { display: flex; max-width: 1200px; margin: 30px auto; gap: 30px; padding: 0 20px; }
-    .main-content { flex: 1; background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.05); min-height: 60vh; }
+    .main-content { flex: 1; background: rgba(244, 238, 223, 0.05); border: 1px solid var(--olive-green); padding: 40px; border-radius: 12px; min-height: 60vh; }
     
-    .q-text { font-size: 18px; font-weight: 500; margin-bottom: 30px; line-height: 1.6; }
+    .q-text { font-size: 18px; font-weight: 500; margin-bottom: 30px; line-height: 1.6; color: var(--cream); }
     .options { display: flex; flex-direction: column; gap: 12px; }
     
     .option { 
-      padding: 16px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; 
-      display: flex; align-items: center; gap: 12px; transition: 0.2s; font-size: 15px;
+      padding: 16px; border: 1px solid rgba(244, 238, 223, 0.2); border-radius: 8px; cursor: pointer; 
+      display: flex; align-items: center; gap: 12px; transition: 0.2s; font-size: 15px; color: var(--cream);
     }
-    .option:hover { border-color: #39ff14; background: rgba(57, 255, 20, 0.05); }
-    .option.selected { border-color: #39ff14; background: rgba(57, 255, 20, 0.1); font-weight: 600; }
+    .option:hover { border-color: var(--burnt-orange); background: rgba(204, 85, 0, 0.05); }
+    .option.selected { border-color: var(--burnt-orange); background: rgba(204, 85, 0, 0.15); font-weight: 600; }
     .option input { display: none; }
     
-    .sidebar { width: 300px; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.05); height: max-content; }
+    .sidebar { width: 300px; background: rgba(244, 238, 223, 0.05); border: 1px solid var(--olive-green); padding: 30px; border-radius: 12px; height: max-content; }
+    .sidebar h3 { font-family: 'Fraunces'; color: var(--warm-sand); margin-top: 0; }
     .grid-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 20px; }
     
-    .nav-btn { aspect-ratio: 1; border: 2px solid #e2e8f0; background: #fff; border-radius: 8px; cursor: pointer; font-weight: 600; color: #0a0e27; }
-    .nav-btn.active { background: #0a0e27; color: #fff; border-color: #0a0e27; }
-    .nav-btn.answered { background: #39ff14; color: #0a0e27; border-color: #39ff14; }
+    .nav-btn { aspect-ratio: 1; border: 1px solid rgba(244, 238, 223, 0.2); background: transparent; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--cream); }
+    .nav-btn.active { background: var(--olive-green); color: var(--cream); border-color: var(--olive-green); }
+    .nav-btn.answered { background: var(--burnt-orange); color: var(--cream); border-color: var(--burnt-orange); }
     
-    .btn-submit { width: 100%; padding: 16px; background: #0a0e27; color: #fff; border: none; border-radius: 8px; font-weight: 600; font-size: 15px; margin-top: 30px; cursor: pointer; transition: 0.2s; }
-    .btn-submit:hover { background: #39ff14; color: #0a0e27; }
+    .btn-submit { width: 100%; padding: 16px; background: var(--burnt-orange); color: var(--cream); border: none; border-radius: 8px; font-weight: 600; font-size: 15px; margin-top: 30px; cursor: pointer; transition: 0.2s; }
+    .btn-submit:hover { background: #e66a15; }
   </style>
 </head>
 <body>
   <div class="header">
-    <h2 style="margin:0; font-size: 20px;">Lumos CBT Environment</h2>
+    <h2 style="margin:0; font-size: 20px; font-family: 'Fraunces';">Lumos CBT Environment</h2>
     <div class="timer" id="timer">--:--</div>
   </div>
 
@@ -81,7 +90,7 @@
       timerInterval = setInterval(() => {
         if (seconds <= 0) {
           clearInterval(timerInterval);
-          submitExam(true); // Auto submit
+          submitExam(true); 
         }
         seconds--;
         const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -120,7 +129,6 @@
           opt.classList.add('selected');
           answers[q.id] = opt.querySelector('input').value;
           
-          // Update navigator button color
           const btn = document.querySelectorAll('.nav-btn')[currentIndex];
           if (answers[q.id]) btn.classList.add('answered');
         });

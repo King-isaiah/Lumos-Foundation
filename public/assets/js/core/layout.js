@@ -21,7 +21,15 @@ async function loadLayout() {
     navLinks = `
       <a href="dashboard.php" class="nav-link ${currentPage === 'dashboard.php' ? 'active' : ''}">Dashboard</a>
       <a href="exams.php" class="nav-link ${currentPage === 'exams.php' || currentPage === 'exam-detail.php' ? 'active' : ''}">Browse Exams</a>
+      <a href="analytics.php" class="nav-link ${currentPage === 'analytic.php' ? 'active' : ''}">Analytics</a>
+      <a href="calendar.php" class="nav-link ${currentPage === 'calendar.php' ? 'active' : ''}">Calender</a>
+      <a href="checkout.php" class="nav-link ${currentPage === 'checkout.php' ? 'active' : ''}">Checkout</a>
+      <a href="inventory.php" class="nav-link ${currentPage === 'inventory.php' ? 'active' : ''}">Inventory</a>
+      <a href="leaderboard.php" class="nav-link ${currentPage === 'leaderboard.php' ? 'active' : ''}">Leaderboard</a>
+      <a href="reports.php" class="nav-link ${currentPage === 'reports.php' ? 'active' : ''}">Report</a>
+      <a href="notifications.php" class="nav-link ${currentPage === 'notifications.php' ? 'active' : ''}">Notification</a>
       <a href="support.php" class="nav-link ${currentPage === 'support.php' ? 'active' : ''}">Support</a>
+      <a href="profile.php" class="nav-link ${currentPage === 'profile.php' ? 'active' : ''}">Profile</a>
     `;
   } else if (isAdmin) {
     const isExamPage = ['exams.php', 'questions.php', 'create-exam.php', 'view-questions.php'].includes(currentPage);
