@@ -4,16 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Log in — Lumos Foundation</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/base.css">
-<link rel="stylesheet" href="./assets/css/toast.css">
-<link rel="stylesheet" href="./assets/css/login.css">
+  <link rel="stylesheet" href="./assets/css/login.css">
+  <link rel="stylesheet" href="./assets/css/toast.css">
+  <!-- Load GSAP in the head -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 </head>
 <body>
-  <main class="login-shell">
-    <section class="login-hero" data-hero>
+  <main class="login-shell" id="loginShell">
+    <section class="login-hero">
       <div class="brand">
         <span class="brand-mark">L</span>
         <span class="brand-name">Lumos Foundation</span>
@@ -25,7 +24,7 @@
       </div>
     </section>
 
-    <section class="login-card">
+    <section class="login-card" id="loginCard">
       <header>
         <h2>Welcome back</h2>
         <p>Log in to continue your journey.</p>
@@ -43,7 +42,7 @@
         </label>
 
         <div class="row-between">
-          <a href="./forgot-password.php" class="link-muted">Forgot password?</a>
+          <button type="button" class="btn-link" onclick="window.location.href='./forgot-password.php'">Forgot password?</button>
         </div>
 
         <button type="submit" class="btn-primary" data-submit>
@@ -53,7 +52,7 @@
       </form>
 
       <p class="signup-line">
-        New here? <a href="./register.php">Create an account</a>
+        New here? <button type="button" class="btn-link" onclick="window.location.href='./register.php'">Create an account</button>
       </p>
     </section>
   </main>

@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <title>Forgot Password — Lumos</title>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/base.css">
-  <link rel="stylesheet" href="./assets/css/toast.css">
   <link rel="stylesheet" href="./assets/css/login.css">
+  <link rel="stylesheet" href="./assets/css/toast.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 </head>
 <body>
   <main class="login-shell">
@@ -14,9 +14,10 @@
       <div class="brand"><span class="brand-mark">L</span><span class="brand-name">Lumos Foundation</span></div>
       <h1>Reset your<br><em>password.</em></h1>
       <p class="hero-sub">Don't worry, it happens to the best of us.</p>
+      <div class="hero-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
     </section>
 
-    <section class="login-card">
+    <section class="login-card" id="forgotCard">
       <header>
         <h2>Forgot Password</h2>
         <p>Enter your email and we'll send you a 6-digit reset code.</p>
@@ -32,7 +33,8 @@
           <span class="btn-spinner" hidden></span>
         </button>
       </form>
-      <p class="signup-line"><a href="./login.php">Back to login</a></p>
+      
+      <button type="button" class="btn-secondary" onclick="window.location.href='./login.php'">Back to login</button>
     </section>
   </main>
 
@@ -41,6 +43,19 @@
     import { toast } from './assets/js/core/toast.js';
     import { validators } from './assets/js/core/validators.js';
 
+    // --- GSAP ANIMATIONS ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const gsap = window.gsap;
+        
+        // 3D Rotate for Hero Text
+        gsap.from(".login-hero h1", { rotationX: 90, opacity: 0, transformOrigin: "top center", duration: 1.2, ease: "back.out(1.7)" });
+        gsap.from(".login-hero p", { y: 20, opacity: 0, duration: 0.8, delay: 0.5 });
+        
+        // Blur to Sharp for Form
+        gsap.from("#forgotCard", { opacity: 0, filter: "blur(20px)", scale: 0.9, duration: 1, delay: 0.3, ease: "power3.out" });
+    });
+
+    // --- YOUR ORIGINAL FUNCTIONALITY ---
     const form = document.getElementById('resetForm');
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -59,7 +74,6 @@
         
         toast.success('If an account exists, a code has been sent.');
         
-        // Move to the step 2 page, passing the email in the URL
         setTimeout(() => {
           location.href = `./reset-password.php?email=${encodeURIComponent(email)}`;
         }, 1500);

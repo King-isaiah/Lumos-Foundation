@@ -7,23 +7,40 @@ const submitBtn = form.querySelector('[data-submit]');
 const btnLabel = submitBtn.querySelector('.btn-label');
 const btnSpinner = submitBtn.querySelector('.btn-spinner');
 
-// GSAP entrance (loaded from CDN)
-const gsap = window.gsap;
+// --- SPECTACULAR GSAP ANIMATIONS ---
+document.addEventListener('DOMContentLoaded', () => {
+    const gsap = window.gsap;
 
-if (gsap) {
-  gsap.set('.login-hero h1, .hero-sub, .brand', { opacity: 0, y: 24 });
-  gsap.timeline()
-    .to('.brand',     { opacity: 1, y: 0, duration: .6, ease: 'power3.out' })
-    .to('.login-hero h1', { opacity: 1, y: 0, duration: .8, ease: 'power3.out' }, '-=0.3')
-    .to('.hero-sub',  { opacity: 1, y: 0, duration: .6, ease: 'power3.out' }, '-=0.4');
+    if (gsap) {
+        // 1. Animate the Floating Orbs continuously
+        gsap.to(".hero-orbs span:nth-child(1)", { x: 50, y: 30, duration: 4, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        gsap.to(".hero-orbs span:nth-child(2)", { x: -40, y: -20, duration: 5, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        gsap.to(".hero-orbs span:nth-child(3)", { x: 20, y: -50, duration: 6, repeat: -1, yoyo: true, ease: "sine.inOut" });
 
-  gsap.set('.login-card form label, .btn-primary, .signup-line, .login-card header', { opacity: 0, y: 16 });
-  gsap.to('.login-card header', { opacity: 1, y: 0, duration: .6, delay: .2, ease: 'power3.out' });
-  gsap.to('.login-card form label, .btn-primary, .signup-line', {
-    opacity: 1, y: 0, duration: .5, stagger: 0.08, delay: .35, ease: 'power2.out',
-  });
-}
+        // 2. The Entry Timeline
+        const tl = gsap.timeline();
 
+        // Brand and Hero Text reveal
+        tl.from(".brand", { y: -20, opacity: 0, duration: 0.8, ease: "power3.out" })
+          .from(".login-hero h1", { y: 40, opacity: 0, duration: 1, ease: "power4.out" }, "-=0.5")
+          .from(".hero-sub", { y: 20, opacity: 0, duration: 0.8, ease: "power3.out" }, "-=0.6");
+
+        // Form Card Slide in
+        tl.from(".login-card", { x: 50, opacity: 0, duration: 0.8, ease: "power3.out" }, "-=1")
+        
+        // Form Elements Stagger
+          .from(".login-card header", { y: 20, opacity: 0, duration: 0.6 }, "-=0.4")
+          .from(".login-card label, .row-between", { y: 20, opacity: 0, duration: 0.5, stagger: 0.1 }, "-=0.3")
+          .from(".btn-primary, .signup-line", { y: 20, opacity: 0, duration: 0.5, stagger: 0.1 }, "-=0.2");
+
+        // 3. Interactive Button Hover Effect
+        const btn = document.querySelector('.btn-primary');
+        btn.addEventListener('mouseenter', () => gsap.to(btn, { scale: 1.02, duration: 0.3 }));
+        btn.addEventListener('mouseleave', () => gsap.to(btn, { scale: 1, duration: 0.3 }));
+    }
+});
+
+// --- FORM SUBMISSION LOGIC (Keep your existing logic below) ---
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -46,7 +63,6 @@ form.addEventListener('submit', async (e) => {
 
     toast.success(`Welcome back, ${data.user.first_name}!`);
 
-    // Check if there is a saved redirect (e.g., if they were trying to access the exam room)
     const redirect = sessionStorage.getItem('redirect_after_login');
     if (redirect) {
         sessionStorage.removeItem('redirect_after_login');
@@ -54,7 +70,6 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
-    // Role-based Redirect Logic
     if (data.user.role === 'admin' || data.user.role === 'super_admin') {
         setTimeout(() => location.href = './admin/dashboard.php', 1500);
     } else {

@@ -2,95 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Verify Email — Lumos Foundation</title>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/base.css">
+  <link rel="stylesheet" href="./assets/css/login.css">
   <link rel="stylesheet" href="./assets/css/toast.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <style>
-    body {
-      background: radial-gradient(circle at 50% 10%, rgba(57, 255, 20, 0.15), transparent 60%), var(--midnight);
-      display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;
-      font-family: var(--font-body); color: var(--text);
-    }
-    .verify-card {
-      background: rgba(15, 20, 46, 0.8); /* Slight transparency */
-      border: 1px solid rgba(57, 255, 20, 0.2);
-      backdrop-filter: blur(10px);
-      padding: 40px; border-radius: 16px;
-      width: 100%; max-width: 420px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-    }
-    .verify-card h1 { font: 700 32px var(--font-display); margin: 0 0 10px; color: var(--off-white); }
-    .verify-card p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
-    
-    /* Timer Styles */
-    .timer-box {
-      background: rgba(57, 255, 20, 0.1);
-      border: 1px dashed rgba(57, 255, 20, 0.3);
-      padding: 10px;
-      border-radius: 8px;
-      text-align: center;
-      margin-bottom: 25px;
-      font-weight: 600;
-      color: var(--gold);
-      font-size: 15px;
-    }
-
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .verify-card { background: rgba(31, 59, 44, 0.8); border: 1px solid var(--olive-green); padding: 40px; border-radius: var(--radius); width: 100%; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+    .timer-box { background: rgba(204, 85, 0, 0.1); border: 1px dashed var(--burnt-orange); padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 25px; font-weight: 600; color: var(--clay); font-size: 15px; }
     .form-group { margin-bottom: 20px; }
-    label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 8px; }
-    input {
-      width: 100%; padding: 14px 16px; border-radius: 8px;
-      background: rgba(57, 255, 20, 0.05);
-      border: 1px solid rgba(57, 255, 20, 0.3);
-      color: var(--off-white); font: 400 15px var(--font-body);
-      transition: 0.2s;
-    }
-    input:focus { outline: none; border-color: var(--gold); background: rgba(57, 255, 20, 0.1); }
-    
-    .btn-verify {
-      width: 100%; padding: 16px; margin-top: 10px;
-      background: var(--gold); color: var(--midnight);
-      border: none; border-radius: 8px;
-      font: 600 16px var(--font-body);
-      cursor: pointer; transition: 0.2s;
-    }
-    .btn-verify:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(57, 255, 20, 0.3); }
-    .btn-verify:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-    
-    .back-link { display: block; text-align: center; margin-top: 20px; font-size: 14px; font-weight: 600; color: var(--gold); text-decoration: none; }
-    .back-link:hover { color: var(--gold-soft); }
+    .code-input { letter-spacing: 10px; text-align: center; font-size: 24px; font-weight: bold; }
   </style>
 </head>
 <body>
-  <div class="verify-card">
-    <h1>Verify Email</h1>
-    <p>Enter your email and the 6-digit code sent to your inbox.</p>
+  <div class="verify-card" id="verifyCard">
+    <h1 style="font-family: var(--font-display); color: var(--cream); margin-top: 0;">Verify Email</h1>
+    <p style="color: var(--warm-sand); font-size: 14px; margin-bottom: 20px;">Enter your email and the 6-digit code sent to your inbox.</p>
     
-    <!-- NEW: Countdown Timer -->
     <div class="timer-box" id="timerDisplay">Code expires in: 05:00</div>
     
     <form id="verifyForm">
       <div class="form-group">
-        <label>Email Address</label>
-        <input type="email" name="email" id="emailInput" required placeholder="you@example.com">
+        <label><span>Email Address</span><input type="email" name="email" id="emailInput" required placeholder="you@example.com"></label>
       </div>
       <div class="form-group">
-        <label>6-Digit Code</label>
-        <input type="text" name="code" required placeholder="------" maxlength="6">
+        <label><span>6-Digit Code</span><input type="text" name="code" class="code-input" required placeholder="------" maxlength="6"></label>
       </div>
       
-      <button type="submit" class="btn-verify" id="submitBtn">Verify Email</button>
+      <button type="submit" class="btn-primary" id="submitBtn">Verify Email</button>
     </form>
     
-    <a href="./login.php" class="back-link">Back to Login</a>
+    <button type="button" class="btn-secondary" onclick="window.location.href='./login.php'">Back to Login</button>
   </div>
 
   <script type="module">
     import { api } from './assets/js/core/api.js';
     import { toast } from './assets/js/core/toast.js';
 
-    // Auto-fill email from URL if available
+    // --- GSAP ANIMATIONS ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const gsap = window.gsap;
+        
+        // Card drops in
+        gsap.from("#verifyCard", { scale: 0.8, opacity: 0, duration: 0.8, ease: "back.out(1.7)" });
+        
+        // Inputs slide up
+        gsap.from(".form-group", { y: 20, opacity: 0, duration: 0.5, stagger: 0.2, delay: 0.4 });
+        gsap.from(".btn-primary, .btn-secondary", { y: 20, opacity: 0, duration: 0.5, delay: 0.8 });
+
+        // Timer Pulse
+        gsap.to("#timerDisplay", { scale: 1.05, boxShadow: "0px 0px 15px rgba(204, 85, 0, 0.4)", duration: 1.5, yoyo: true, repeat: -1, ease: "sine.inOut" });
+    });
+
+    // --- YOUR ORIGINAL FUNCTIONALITY ---
     const urlParams = new URLSearchParams(window.location.search);
     const emailParam = urlParams.get('email');
     if (emailParam) {
@@ -101,8 +66,7 @@
     const btn = document.getElementById('submitBtn');
     const timerDisplay = document.getElementById('timerDisplay');
     
-    // --- COUNTDOWN TIMER LOGIC ---
-    let timeLeft = 300; // 5 minutes in seconds
+    let timeLeft = 300;
     const timerInterval = setInterval(() => {
         timeLeft--;
         
@@ -123,7 +87,6 @@
         timerDisplay.textContent = `Code expires in: ${m}:${s}`;
     }, 1000);
 
-    // --- FORM SUBMISSION LOGIC ---
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       btn.disabled = true; btn.textContent = 'Verifying...';
@@ -138,7 +101,7 @@
           }
         });
 
-        clearInterval(timerInterval); // Stop the timer on success
+        clearInterval(timerInterval);
         toast.success('Email verified successfully! Redirecting to login...');
         setTimeout(() => location.href = './login.php', 2000);
 

@@ -2,67 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Create Account — Lumos Foundation</title>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/base.css">
+  <link rel="stylesheet" href="./assets/css/login.css">
   <link rel="stylesheet" href="./assets/css/toast.css">
-  <link rel="stylesheet" href="./assets/css/login.css"> <!-- Reusing login styles -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <style>
-    .register-card { padding: 40px; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    /* Added a slight style for the select dropdown to match inputs */
-    select { width: 100%; padding: 14px 16px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); border-radius: var(--radius); color: var(--text); font: 400 15px var(--font-body); outline: none; }
-    select:focus { border-color: var(--gold); }
-    select option { background: var(--midnight); color: var(--text); }
   </style>
 </head>
 <body>
   <main class="login-shell">
-    <section class="login-hero" data-hero>
-      <div class="brand">
-        <span class="brand-mark">L</span>
-        <span class="brand-name">Lumos Foundation</span>
-      </div>
+    <section class="login-hero">
+      <div class="brand"><span class="brand-mark">L</span><span class="brand-name">Lumos Foundation</span></div>
       <h1>Join the elite.<br><em>Claim your prize.</em></h1>
       <p class="hero-sub">Create an account to register for paid CBT exams and compete on the global leaderboard.</p>
       <div class="hero-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
     </section>
 
-    <section class="login-card register-card">
+    <section class="login-card register-card" id="registerCard">
       <header>
         <h2>Create Account</h2>
-        <p>Already have an account? <a href="./login.php">Log in here</a></p>
+        <p>Already have an account? <button type="button" class="btn-link" onclick="window.location.href='./login.php'">Log in here</button></p>
       </header>
 
       <form id="registerForm" novalidate>
         <div class="form-row">
-          <label>
-            <span>First Name</span>
-            <input type="text" name="first_name" required placeholder="John">
-          </label>
-          <label>
-            <span>Last Name</span>
-            <input type="text" name="last_name" required placeholder="Doe">
-          </label>
+          <label><span>First Name</span><input type="text" name="first_name" required placeholder="John"></label>
+          <label><span>Last Name</span><input type="text" name="last_name" required placeholder="Doe"></label>
         </div>
-
         <div class="form-row">
-          <label>
-            <span>Username</span>
-            <input type="text" name="username" autocomplete="username" required placeholder="johndoe123">
-          </label>
-          <label>
-            <span>Phone Number</span>
-            <input type="tel" name="phone" required placeholder="e.g. 08012345678">
-          </label>
+          <label><span>Username</span><input type="text" name="username" autocomplete="username" required placeholder="johndoe123"></label>
+          <label><span>Phone Number</span><input type="tel" name="phone" required placeholder="08012345678"></label>
         </div>
-
         <div class="form-row">
-          <label>
-            <span>Email address</span>
-            <input type="email" name="email" autocomplete="email" required placeholder="you@example.com">
-          </label>
+          <label><span>Email address</span><input type="email" name="email" autocomplete="email" required placeholder="you@example.com"></label>
           <label>
             <span>Gender</span>
             <select name="gender" required>
@@ -72,16 +46,9 @@
             </select>
           </label>
         </div>
-
         <div class="form-row">
-          <label>
-            <span>Password</span>
-            <input type="password" name="password" autocomplete="new-password" required placeholder="Minimum 8 characters">
-          </label>
-          <label>
-            <span>Profile Picture (Optional)</span>
-            <input type="file" name="avatar" accept="image/*" style="padding: 10px;">
-          </label>
+          <label><span>Password</span><input type="password" name="password" autocomplete="new-password" required placeholder="Minimum 8 characters"></label>
+          <label><span>Profile Picture (Optional)</span><input type="file" name="avatar" accept="image/*" style="padding: 10px;"></label>
         </div>
 
         <button type="submit" class="btn-primary" data-submit>
@@ -92,23 +59,30 @@
     </section>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script type="module">
     import { api, ApiError } from './assets/js/core/api.js';
     import { toast } from './assets/js/core/toast.js';
     import { validators, validateForm } from './assets/js/core/validators.js';
 
-    // GSAP Entrance
-    const gsap = window.gsap;
-    if (gsap) {
-      gsap.set('.login-hero h1, .hero-sub, .brand', { opacity: 0, y: 24 });
-      gsap.timeline().to('.brand', { opacity: 1, y: 0, duration: .6, ease: 'power3.out' })
-        .to('.login-hero h1', { opacity: 1, y: 0, duration: .8, ease: 'power3.out' }, '-=0.3')
-        .to('.hero-sub', { opacity: 1, y: 0, duration: .6, ease: 'power3.out' }, '-=0.4');
-      
-      gsap.from('.register-card', { opacity: 0, x: 30, duration: 0.8, ease: 'power3.out', delay: 0.2 });
-    }
+    // --- GSAP ANIMATIONS ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const gsap = window.gsap;
+        
+        // Elastic Drop-in for the Card
+        gsap.from("#registerCard", { y: -150, opacity: 0, duration: 1.2, ease: "elastic.out(1, 0.6)" });
+        
+        // Staggered Reveal for Form Rows
+        gsap.from(".form-row", { y: 30, opacity: 0, duration: 0.6, stagger: 0.15, delay: 0.5, ease: "power2.out" });
+        
+        // Glowing Input Focus
+        const inputs = document.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => gsap.to(input, { boxShadow: "0px 0px 15px rgba(204, 85, 0, 0.4)", duration: 0.3 }));
+            input.addEventListener('blur', () => gsap.to(input, { boxShadow: "none", duration: 0.3 }));
+        });
+    });
 
+    // --- YOUR ORIGINAL FUNCTIONALITY ---
     const form = document.getElementById('registerForm');
     const submitBtn = form.querySelector('[data-submit]');
     const btnLabel = submitBtn.querySelector('.btn-label');
@@ -132,7 +106,6 @@
       btnLabel.hidden = true;
       btnSpinner.hidden = false;
 
-      // Handle File Upload via Base64
       let avatarBase64 = null;
       const fileInput = form.elements.avatar;
       if (fileInput.files.length > 0) {
@@ -168,7 +141,6 @@
           },
         });
 
-        // Toast success and redirect to verify page
         toast.success('Registration successful! Please verify your email.');
         setTimeout(() => {
             location.href = `./verify.php?email=${encodeURIComponent(res.email)}`;
@@ -176,13 +148,8 @@
 
       } catch (err) {
         let errorMsg = err.message;
-        
-        // Handle specific DB unique constraint errors explicitly
-        if (errorMsg.includes('email already exists')) {
-            errorMsg = 'This email address is already registered. Please use another one.';
-        } else if (errorMsg.includes('username is taken')) {
-            errorMsg = 'This username is already taken. Please choose a different one.';
-        }
+        if (errorMsg.includes('email already exists')) errorMsg = 'This email address is already registered.';
+        else if (errorMsg.includes('username is taken')) errorMsg = 'This username is already taken.';
         
         toast.error(errorMsg);
         submitBtn.disabled = false;
