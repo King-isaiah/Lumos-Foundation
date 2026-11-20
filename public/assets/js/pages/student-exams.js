@@ -110,25 +110,13 @@ window.openExamModal = async (slug) => {
                 </div>
             ` : ''}
 
+            <!-- CHANGED: Removed the Pay button and replaced it with a Checkout redirect -->
             <div class="modal-footer">
-                <button class="btn-pay" id="modalPayBtn">Pay ₦${priceNaira} & Enter Exam</button>
+                <button class="btn-view" style="width: 100%; border: 1px solid var(--burnt-orange); background: transparent; color: var(--burnt-orange);" onclick="window.location.href='./checkout.php'">Go to Checkout to Register</button>
             </div>
         `;
 
-        // Attach payment logic to the modal button
-        document.getElementById('modalPayBtn').addEventListener('click', async () => {
-            const btn = document.getElementById('modalPayBtn');
-            btn.textContent = 'Redirecting to Paystack...';
-            btn.disabled = true;
-            try {
-                const res = await api('payments', 'initialize', { method: 'POST', body: { exam_id: exam.id } });
-                window.location.href = res.url;
-            } catch (err) {
-                toast.error(err.message);
-                btn.textContent = `Pay ₦${priceNaira} & Enter Exam`;
-                btn.disabled = false;
-            }
-        });
+        // CHANGED: Removed the payment logic entirely from this page
 
     } catch (err) {
         modalContent.innerHTML = `<p style="text-align:center; color:#ef4444;">Failed to load exam details.</p>`;
