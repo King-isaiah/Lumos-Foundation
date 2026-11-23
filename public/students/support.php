@@ -6,6 +6,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/base.css">
   <link rel="stylesheet" href="../assets/css/toast.css">
+  <link rel="stylesheet" href="../assets/css/layout.css">
   <style>
     :root {
       --forest-green: #1F3B2C;

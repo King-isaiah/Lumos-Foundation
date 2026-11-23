@@ -5,6 +5,9 @@ require_once __DIR__ . '/../config.php';
 class Database {
     protected PDO $db;
 
+    // 1. NEW: Added static property to hold the shared connection
+    private static ?PDO $sharedConnection = null; 
+
     const ERROR_USER_FACING = 'user_facing';
     const ERROR_DEVELOPER   = 'developer';
 
@@ -13,15 +16,25 @@ class Database {
     }
 
     protected function getConnection(): PDO {
+        // 2. NEW: If a connection already exists, return it immediately
+        if (self::$sharedConnection !== null) {
+            return self::$sharedConnection;
+        }
+
         $c = Config::database();
         $dsn = "mysql:host={$c['host']};dbname={$c['name']};charset=utf8mb4";
         try {
-            return new PDO($dsn, $c['user'], $c['pass'], [
+            $pdo = new PDO($dsn, $c['user'], $c['pass'], [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
                 PDO::ATTR_STRINGIFY_FETCHES  => false,
             ]);
+            
+            // 3. NEW: Store the connection for future classes to reuse
+            self::$sharedConnection = $pdo;
+            return $pdo;
+            
         } catch (PDOException $e) {
             Logger::error('DB connection failed', [
                 'message' => $e->getMessage(),

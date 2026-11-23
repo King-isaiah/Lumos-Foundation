@@ -3,11 +3,13 @@ body.has-sidebar { display: flex; min-height: 100vh; background-color: var(--for
 
 .sidebar {
   width: 260px; 
-  background: #162c20; /* Admin keeps the dark green */
+  background: #162c20;
   border-right: 1px solid rgba(236, 226, 207, 0.1);
   padding: 30px 20px; display: flex; flex-direction: column; position: fixed; 
   height: 100vh; overflow-y: auto; overflow-x: hidden;
   transition: width 0.3s ease, background 0.3s ease;
+  z-index: 1000; /* FIX: Puts sidebar ON TOP of the header */
+  box-sizing: border-box;
 }
 
 /* Student Sidebar gets Olive Green */
@@ -40,7 +42,6 @@ body.has-sidebar { display: flex; min-height: 100vh; background-color: var(--for
 
 .logout-btn { color: #ef4444 !important; margin-top: auto; border-top: 1px solid rgba(236, 226, 207, 0.1); border-radius: 0; padding-top: 20px; }
 
-/* UPDATED: Added 60px left padding to push content away from the sidebar */
 .main-content { 
   margin-left: 260px; padding: 40px 40px 40px 60px; flex-grow: 1; min-height: 100vh; 
   width: calc(100% - 260px); box-sizing: border-box; transition: margin-left 0.3s ease, width 0.3s ease, padding 0.3s ease;
@@ -55,7 +56,7 @@ body.sidebar-collapsed .sidebar {
 body.sidebar-collapsed .main-content {
     margin-left: 80px;
     width: calc(100% - 80px);
-    padding: 40px; /* Reset padding to even when collapsed since there is no large sidebar */
+    padding: 40px; 
 }
 
 /* Hide text and chevrons when collapsed */
@@ -74,7 +75,7 @@ body.sidebar-collapsed .sidebar-header {
 }
 
 body.sidebar-collapsed .brand {
-    font-size: 20px; /* Shrink brand text */
+    font-size: 20px; 
 }
 
 body.sidebar-collapsed .nav-link {
@@ -127,11 +128,172 @@ body.sidebar-collapsed .nav-link {
   padding: 15px 20px; 
 }
 
-/* Fix for collapsed state inside the student accordions */
 body.sidebar-collapsed .student-layout .nav-toggle {
   justify-content: center;
   padding: 15px;
 }
 body.sidebar-collapsed .student-layout .nav-sub-menu {
-  display: none; /* Hide submenus completely when collapsed */
+  display: none; 
 }
+
+/* --- TOP NAVIGATION HEADER --- */
+.top-header {
+  position: fixed;
+  top: 0;
+  left: 260px; 
+  right: 0;
+  height: 75px;
+  background: #1a2e22; /* Calm forest green */
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px 0 60px; 
+  z-index: 900; /* FIX: Keeps header BEHIND the sidebar */
+  transition: left 0.3s ease, padding 0.3s ease;
+  box-sizing: border-box;
+}
+
+/* Ensure header follows the sidebar when it collapses */
+body.sidebar-collapsed .top-header {
+  left: 80px;
+  padding: 0 40px;
+}
+
+.header-left .greeting {
+  font: 500 16px var(--font-body);
+  color: #94a3b8;
+  margin: 0;
+}
+.header-left .greeting strong {
+  color: #fff;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: grid;
+  place-items: center;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: 0.2s;
+  position: relative;
+}
+.header-icon:hover {
+  background: rgba(204, 85, 0, 0.1);
+  color: var(--clay);
+  border-color: var(--clay);
+}
+.header-icon svg { width: 20px; height: 20px; }
+
+.notif-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #1a2e22;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  padding: 6px 16px 6px 6px;
+  border-radius: 50px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: 0.2s;
+}
+.user-profile:hover {
+  background: rgba(255,255,255,0.08);
+}
+.user-profile img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--clay);
+}
+.user-profile span {
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Adjust main content to not hide under sticky header */
+.main-content.has-top-nav {
+  padding-top: 115px; 
+}
+
+/* Ensure padding is respected when collapsed */
+body.sidebar-collapsed .main-content.has-top-nav {
+  padding-top: 115px;
+}
+
+/* --- NOTIFICATION DROPDOWN --- */
+.notification-wrapper { position: relative; }
+
+.notif-dropdown {
+  position: absolute;
+  top: 55px;
+  right: 0;
+  width: 320px;
+  background: #21382a; 
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: 0.2s;
+  z-index: 1000;
+}
+.notif-dropdown.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.notif-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-weight: 600;
+  color: #fff;
+}
+
+.notif-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.notif-item {
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: 0.2s;
+}
+.notif-item:hover { background: rgba(255,255,255,0.03); }
+.notif-item.unread { background: rgba(194, 100, 63, 0.1); border-left: 3px solid var(--clay); }
+
+.notif-title { font-weight: 600; color: #fff; font-size: 14px; margin-bottom: 4px; }
+.notif-body { font-size: 13px; color: #94a3b8; line-height: 1.4; margin-bottom: 6px; }
+.notif-time { font-size: 11px; color: #64748b; }
+.notif-empty { padding: 20px; text-align: center; color: #94a3b8; font-size: 14px; }

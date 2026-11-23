@@ -65,7 +65,6 @@ async function loadLayout() {
       </div>
     `;
   } else if (isAdmin) {
-    // Admin links (Added spans for the collapsible text)
     const isExamPage = ['exams.php', 'questions.php', 'create-exam.php', 'view-questions.php'].includes(currentPage);
     navLinks = `
       <a href="dashboard.php" class="nav-link ${currentPage === 'dashboard.php' ? 'active' : ''}"><span class="nav-icon">🏠</span> <span class="nav-text">Overview</span></a>
@@ -93,14 +92,52 @@ async function loadLayout() {
     </nav>
   `;
 
+  // --- NEW: INJECT TOP HEADER (Only for students) ---
+  let headerHTML = '';
+  if (isStudent) {
+    document.body.classList.add('has-top-nav'); // Adds the padding class to CSS
+    headerHTML = `
+      <header class="top-header" id="studentHeader">
+        <div class="header-left">
+          <h2 class="greeting" id="userGreeting">Loading...</h2>
+        </div>
+        <div class="header-right">
+          <a href="support.php" class="header-icon" title="Help & Support">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </a>
+          <div class="notification-wrapper">
+            <button class="header-icon" id="notifBell">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+            </button>
+            <div class="notif-dropdown" id="notifDropdown">
+              <div class="notif-header"><span>Notifications</span></div>
+              <div class="notif-list" id="notifList"><div class="notif-empty">No new notifications</div></div>
+            </div>
+          </div>
+          <a href="profile.php" class="user-profile">
+            <img src="../assets/img/default-avatar.png" id="headerAvatar" alt="Profile">
+            <span id="headerUsername">User</span>
+          </a>
+        </div>
+      </header>
+    `;
+    document.body.insertAdjacentHTML('afterbegin', headerHTML);
+  }
+
   document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
   
+  // --- UPDATED WRAPPER LOGIC to account for the Top Header ---
   setTimeout(() => {
     const nav = document.querySelector('.sidebar');
+    const header = document.querySelector('.top-header'); // Check for header
     const wrapper = document.createElement('main');
-    wrapper.className = 'main-content';
+    wrapper.className = isStudent ? 'main-content has-top-nav' : 'main-content';
+    
     Array.from(document.body.children).forEach(child => {
-      if (child !== nav) wrapper.appendChild(child);
+      if (child !== nav && child !== header) {
+        wrapper.appendChild(child);
+      }
     });
     document.body.appendChild(wrapper);
   }, 0);
@@ -145,6 +182,9 @@ async function loadLayout() {
         }
       });
     });
+
+    // --- NEW: Fetch and Populate Header Data ---
+    loadHeaderData();
   }
 
   document.getElementById('logoutBtn').addEventListener('click', async (e) => {
@@ -153,4 +193,64 @@ async function loadLayout() {
     location.href = '../login.php';
   });
 }
+
+// --- NEW FUNCTION FOR HEADER DATA ---
+async function loadHeaderData() {
+    try {
+        const user = await api('users', 'getCurrentUser');
+        
+        const hour = new Date().getHours();
+        let greeting = 'Good evening';
+        if (hour < 12) greeting = 'Good morning';
+        else if (hour < 18) greeting = 'Good afternoon';
+        
+        document.getElementById('userGreeting').innerHTML = `${greeting}, <strong>${user.first_name}</strong> 👋`;
+        document.getElementById('headerUsername').textContent = user.first_name;
+        
+        if (user.avatar_url) {
+            document.getElementById('headerAvatar').src = user.avatar_url;
+        }
+
+        const notifications = await api('notifications', 'getMyNotifications');
+        const list = document.getElementById('notifList');
+        const badge = document.getElementById('notifBadge');
+        
+        const unreadCount = notifications.filter(n => !n.read_at).length;
+        
+        if (unreadCount > 0) {
+            badge.style.display = 'flex';
+            badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+        }
+
+        if (notifications.length === 0) {
+            list.innerHTML = `<div class="notif-empty">No notifications yet</div>`;
+        } else {
+            list.innerHTML = notifications.map(n => `
+                <div class="notif-item ${n.read_at ? 'read' : 'unread'}">
+                    <div class="notif-title">${n.title}</div>
+                    <div class="notif-body">${n.body}</div>
+                    <div class="notif-time">${new Date(n.created_at).toLocaleDateString()}</div>
+                </div>
+            `).join('');
+        }
+
+        const bell = document.getElementById('notifBell');
+        const dropdown = document.getElementById('notifDropdown');
+        
+        bell.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target) && e.target !== bell) {
+                dropdown.classList.remove('active');
+            }
+        });
+
+    } catch (err) {
+        console.error("Failed to load header data", err);
+    }
+}
+
 loadLayout();

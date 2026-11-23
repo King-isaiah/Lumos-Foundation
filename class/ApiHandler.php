@@ -176,10 +176,15 @@ class ApiHandler {
             case 'getHistory':     $this->getUserHistory(); return;
             case 'getMyComplaints':$this->getMyComplaints(); return;
             case 'getAnalytics':   $this->getExamAnalytics(); return;
+            case 'getMyNotifications': $this->respond(true, (new Notification())->getMyNotifications((int)$_SESSION['user_id']), 'Notifications loaded.'); return;
             case 'getOpenExams':   $this->respond(true, (new Payment())->getOpenExams(), 'OK'); return;
             case 'getAllUsers':    $this->respond(true, (new Payment())->getAllUsers(), 'OK'); return;
-            case 'getActiveExams': $this->respond(true, (new Exam())->getActiveExams(), 'Active exams loaded.'); return;            
+            
+            // UPDATED: Pass the user ID to getActiveExams
+            case 'getActiveExams': $this->respond(true, (new Exam())->getActiveExams((int)$_SESSION['user_id']), 'Active exams loaded.'); return;            
+            
             case 'getStudentStats': $this->respond(true, (new Dashboard())->getStudentStats((int)$_SESSION['user_id']), 'Stats loaded.'); return;
+            
             default:
                 $this->respond(false, null, 'Invalid GET action.', 400);
         }

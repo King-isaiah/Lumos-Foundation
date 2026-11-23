@@ -30,7 +30,23 @@ class Mailer {
         
         return $this->sendViaBrevo($toEmail, $firstName, $subject, $htmlContent);
     }
+        // Add this method to class/Mailer.php
+    public function sendPaymentConfirmation(string $email, string $firstName, string $examTitle, string $amountNaira): bool {
+        $subject = "Payment Confirmed - Good Luck on your Exam!";
+        $htmlContent = "
+            <div style='font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;'>
+                <h2 style='color: #CC5500;'>Hello {$firstName},</h2>
+                <p>We are thrilled to confirm that your payment for <strong>{$examTitle}</strong> was successful!</p>
+                <p><strong>Amount Paid:</strong> ₦{$amountNaira}</p>
+                <p>You are now officially registered. Prepare well, trust your instincts, and go crush that exam. We are rooting for you!</p>
+                <br>
+                <p>Best regards,<br>The Lumos Foundation Team</p>
+            </div>
+        ";
 
+        // ACTUALLY SEND THE EMAIL
+        return $this->sendViaBrevo($email, $firstName, $subject, $htmlContent);
+    }
     private function sendViaBrevo(string $toEmail, string $toName, string $subject, string $htmlContent): bool {
         $config = Config::mail();
         $apiKey = $config['api_key'];
