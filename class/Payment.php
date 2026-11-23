@@ -5,6 +5,8 @@ require_once __DIR__ . '/Exam.php';
 require_once __DIR__ . '/User.php';
 require_once __DIR__ . '/Logger.php';
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/Notification.php'; // ADDED
+require_once __DIR__ . '/Mailer.php';       // ADDED
 
 class Payment extends Database {
     
@@ -74,7 +76,6 @@ class Payment extends Database {
         );
     }
 
-    // FIXED: Changed to accept array to match ApiHandler routing
     public function manualVerify(array $input): void {
         $paymentId = (int)($input['id'] ?? 0);
         if (!$paymentId) throw new Exception('Payment ID is required.', 400);
@@ -131,7 +132,6 @@ class Payment extends Database {
         return $this->fetchAll("SELECT id, first_name, last_name, email FROM users WHERE role = 'user'");
     }
     
-      
     public function verifyTransaction(array $input): array {
         $reference = $input['reference'] ?? '';
         
@@ -161,6 +161,30 @@ class Payment extends Database {
                 'gateway_response_json' => json_encode($verified)
             ], 'id = ?', [$payment['id']]);
 
+            // --- NEW: Send Email and Save Notification ---
+            try {
+                $user = (new User())->getById((int)$payment['user_id']);
+                $exam = (new Exam())->getById((int)$payment['exam_id']);
+                $amountNaira = number_format($payment['amount_kobo'] / 100, 2);
+
+                // 1. Create in-app notification
+                (new Notification())->create(
+                    (int)$payment['user_id'],
+                    'payment',
+                    'Payment Successful',
+                    "Your payment of ₦{$amountNaira} for {$exam['title']} was successful. Good luck on your exam!",
+                    ['payment_id' => $payment['id'], 'exam_id' => $payment['exam_id']]
+                );
+
+                // 2. Send email
+                (new Mailer())->sendPaymentConfirmation($user['email'], $user['first_name'], $exam['title'], $amountNaira);
+
+            } catch (Throwable $e) {
+                // We log the error but don't stop the payment success flow if email fails
+                Logger::error('Failed to send payment notification/email', ['error' => $e->getMessage(), 'payment_id' => $payment['id']]);
+            }
+            // ---------------------------------------------
+
             Logger::info('Payment verified and recorded', ['payment_id' => $payment['id'], 'reference' => $reference]);
             
             return ['status' => 'success', 'message' => 'Payment verified successfully.', 'exam_id' => $payment['exam_id']];
@@ -169,5 +193,50 @@ class Payment extends Database {
         // Verification failed
         Logger::error('Payment verification failed', ['reference' => $reference, 'response' => $verified]);
         throw new Exception('Payment verification failed. Please contact support if you were debited.', 400);
+    }
+
+    public function processWebhook(string $reference, array $paystackData): void {
+        // Check if pending
+        $payment = $this->fetchOne("SELECT id, user_id, exam_id, status, amount_kobo FROM payments WHERE reference = ?", [$reference]);
+        
+        if ($payment && $payment['status'] === 'pending') {
+            // Mark as success!
+            $this->update('payments', [
+                'status' => 'success',
+                'gateway_ref' => $paystackData['id'],
+                'paid_at' => date('Y-m-d H:i:s'),
+                'gateway_response_json' => json_encode($paystackData)
+            ], 'id = ?', [$payment['id']]);
+
+            // --- Send Email and Save Notification ---
+            try {
+                $user = (new User())->getById((int)$payment['user_id']);
+                $exam = (new Exam())->getById((int)$payment['exam_id']);
+                $amountNaira = number_format($payment['amount_kobo'] / 100, 2);
+
+                // 1. Create in-app notification
+                (new Notification())->create(
+                    (int)$payment['user_id'],
+                    'payment', 
+                    'Payment Successful',
+                    "Your payment of ₦{$amountNaira} for {$exam['title']} was successful. Good luck on your exam!",
+                    ['payment_id' => $payment['id'], 'exam_id' => $payment['exam_id']]
+                );
+
+                // 2. Send email
+                (new Mailer())->sendPaymentConfirmation($user['email'], $user['first_name'], $exam['title'], $amountNaira);
+
+            } catch (Throwable $e) {
+                Logger::error('Webhook: Failed to send payment notification/email', ['error' => $e->getMessage(), 'payment_id' => $payment['id']]);
+            }
+
+            Logger::info('Payment confirmed via webhook', ['reference' => $reference, 'amount' => $payment['amount_kobo']]);
+        }
+    }
+    public function getMyPayments(int $userId): array {
+        return $this->fetchAll(
+            "SELECT exam_id, status FROM payments WHERE user_id = ? AND status = 'success'",
+            [$userId]
+        );
     }
 }

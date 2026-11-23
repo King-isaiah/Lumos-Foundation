@@ -146,15 +146,20 @@ class Exam extends Database {
 
         return (int)($totalRevenue * $pct);
     }
-    public function getActiveExams(): array {
+
+    // UPDATED: Now checks if the user has paid for the exam
+    public function getActiveExams(int $userId): array {
         return $this->fetchAll(
-            "SELECT id, slug, title, subject, description, rules_text, price_kobo, duration_minutes, 
-                    question_count, starts_at, ends_at, status, banner_url, prize_pool_pct
-             FROM exams 
-             WHERE status = 'open'
-             ORDER BY starts_at ASC"
+            "SELECT e.id, e.slug, e.title, e.subject, e.description, e.rules_text, e.price_kobo, e.duration_minutes, 
+                    e.question_count, e.starts_at, e.ends_at, e.status, e.banner_url, e.prize_pool_pct,
+                    (SELECT COUNT(*) FROM payments p WHERE p.exam_id = e.id AND p.user_id = ? AND p.status = 'success') as is_paid
+             FROM exams e
+             WHERE e.status = 'open'
+             ORDER BY e.starts_at ASC",
+             [$userId]
         );
     }
+
     public function getAnalytics(int $id): array {
         $exam = $this->getById($id);
         if (!$exam) throw new Exception('Exam not found.', 404);

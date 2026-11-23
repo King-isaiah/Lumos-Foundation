@@ -23,6 +23,10 @@
     .btn-pay:hover { background: #e66a15; transform: translateY(-2px); }
     .btn-pay:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
+    /* --- NEW: Blue Paid Button --- */
+    .btn-paid { background: #3b82f6; color: #ffffff; padding: 14px; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.3s; text-align: center; }
+    .btn-paid:hover { background: #2563eb; transform: translateY(-2px); }
+
     /* --- NEW WARNING MODAL STYLES --- */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -104,7 +108,9 @@
 
     async function loadExams() {
       try {
+        // FIXED: Only one API call is needed now
         const exams = await api('exams', 'getActiveExams'); 
+
         if (exams.length === 0) {
           grid.innerHTML = `<p style="color: var(--warm-sand);">No active exams available right now.</p>`;
           return;
@@ -112,6 +118,14 @@
 
         grid.innerHTML = exams.map(exam => {
           const price = (exam.price_kobo / 100).toLocaleString();
+          
+          // FIXED: Use the is_paid flag from the backend
+          const isPaid = exam.is_paid > 0;
+          
+          const btnHtml = isPaid 
+            ? `<button class="btn-paid" onclick="window.location.href='./inventory.php'">Paid - Go to Inventory</button>`
+            : `<button class="btn-pay" onclick="window.showPaymentWarning(${exam.id}, this)">Pay & Enter</button>`;
+
           return `
             <div class="exam-card">
               <h3>${exam.title}</h3>
@@ -120,16 +134,17 @@
               <div style="font-size: 13px; color: var(--warm-sand); margin-bottom: 20px;">
                 ⏱ ${exam.duration_minutes} mins • ${exam.question_count} Questions
               </div>
-              <button class="btn-pay" onclick="window.showPaymentWarning(${exam.id}, this)">Pay & Enter</button>
+              ${btnHtml}
             </div>
           `;
         }).join('');
       } catch (err) {
         toast.error('Failed to load exams.');
+        console.error(err);
       }
     }
 
-    // NEW: Function to show the warning modal first
+    // Function to show the warning modal first
     window.showPaymentWarning = (examId, btn) => {
         pendingExamId = examId;
         pendingBtn = btn;
