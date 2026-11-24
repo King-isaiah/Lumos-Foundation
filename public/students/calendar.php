@@ -225,7 +225,7 @@
         if (parseInt(exam.is_paid) > 0) {
           actionContainer.innerHTML = `<button class="btn-modal-action btn-start" onclick="window.startExam(${exam.id})">🚀 Start Exam Now</button>`;
         } else {
-          actionContainer.innerHTML = `<button class="btn-modal-action btn-pay" onclick="window.payForExam(${exam.id})">Pay ₦${(exam.price_kobo / 100).toLocaleString()} to Register</button>`;
+          actionContainer.innerHTML = `<a href="./checkout.php" class="btn-modal-action btn-pay" style="text-decoration: none; display: flex; justify-content: center; align-items: center; width: 100%; box-sizing: border-box;">Pay ₦${(exam.price_kobo / 100).toLocaleString()} to Register</a>`;
         }
       
       } else {

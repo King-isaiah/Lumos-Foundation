@@ -11,4 +11,10 @@ class Notification extends Database {
             'data_json' => $data ? json_encode($data) : null
         ]);
     }
+    public function getMyNotifications(int $userId): array {
+        return $this->fetchAll(
+            "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 10",
+            [$userId]
+        );
+    }
 }
