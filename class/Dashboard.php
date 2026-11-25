@@ -3,7 +3,6 @@ require_once __DIR__ . '/Database.php';
 
 class Dashboard extends Database {
     
-    // --- YOUR EXISTING ADMIN METHOD (Untouched) ---
     public function getAdminStats(): array {
         $totalRevenue = (int)$this->fetchValue("SELECT COALESCE(SUM(amount_kobo), 0) FROM payments WHERE status = 'success'");
         $totalPayouts = (int)$this->fetchValue("SELECT COALESCE(SUM(amount_kobo), 0) FROM payouts WHERE status = 'paid'");
@@ -27,9 +26,7 @@ class Dashboard extends Database {
         ];
     }
 
-    // --- UPDATED STUDENT METHOD ---
     public function getStudentStats(int $userId): array {
-        // 1. Get basic stats
         $attempts = $this->fetchAll("
             SELECT score_percentage 
             FROM exam_attempts 
@@ -48,7 +45,7 @@ class Dashboard extends Database {
 
         $avgScore = $examsTaken > 0 ? round($totalScore / $examsTaken, 1) : 0;
 
-        // 2. Check for ongoing attempts
+        // FIXED: Looking for 'in_progress'
         $ongoingAttempt = $this->fetchOne("
             SELECT a.id as attempt_id, e.title, e.slug
             FROM exam_attempts a
@@ -57,7 +54,6 @@ class Dashboard extends Database {
             LIMIT 1
         ", [$userId]);
 
-        // 3. Get Open Exams (FIXED: Changed entry_fee_kobo to price_kobo based on your DB)
         $openExams = $this->fetchAll("
             SELECT e.id, e.title, e.subject, e.price_kobo, e.duration_minutes, e.slug
             FROM exams e
@@ -69,7 +65,6 @@ class Dashboard extends Database {
             LIMIT 3
         ", [$userId]);
 
-        // 4. Calculate Daily Streak (Based on activity_logs)
         $logs = $this->fetchAll("
             SELECT DISTINCT DATE(created_at) as log_date 
             FROM activity_logs 
@@ -84,7 +79,6 @@ class Dashboard extends Database {
             $yesterday = date('Y-m-d', strtotime('-1 day'));
             $dates = array_column($logs, 'log_date');
             
-            // If they were active today or yesterday, the streak is alive
             if ($dates[0] == $today || $dates[0] == $yesterday) {
                 $streak = 1;
                 $expectedDate = date('Y-m-d', strtotime($dates[0] . ' -1 day'));
@@ -99,9 +93,9 @@ class Dashboard extends Database {
             }
         }
 
-        // 5. Get Achievements (Top 3 Leaderboard Podiums)
+        // FIXED: Backticks around `rank`
         $awards = $this->fetchAll("
-            SELECT l.rank_position as rank, e.title as exam, l.updated_at as date
+            SELECT l.rank_position as `rank`, e.title as exam, l.updated_at as date
             FROM exam_leaderboard l
             JOIN exams e ON l.exam_id = e.id
             WHERE l.user_id = ? AND l.rank_position <= 3
@@ -109,7 +103,6 @@ class Dashboard extends Database {
             LIMIT 4
         ", [$userId]);
 
-        // 6. Check for Upcoming Paid Exams (For Hall Ticket)
         $upcomingPaid = $this->fetchOne("
             SELECT e.title 
             FROM payments p 

@@ -173,6 +173,7 @@ class ApiHandler {
             case 'getCurrentUser': $this->getCurrentUser(); return;
             case 'getBySlug':      $this->getBySlug(); return; 
             case 'getActive':      $this->getActiveAttempt(); return;
+            case 'getRoomDetails': $this->getRoomDetails(); return; // NEW: Exam Room Details
             case 'getHistory':     $this->getUserHistory(); return;
             case 'getMyComplaints':$this->getMyComplaints(); return;
             case 'getAnalytics':   $this->getExamAnalytics(); return;
@@ -180,10 +181,7 @@ class ApiHandler {
             case 'getOpenExams':   $this->respond(true, (new Payment())->getOpenExams(), 'OK'); return;
             case 'getAllUsers':    $this->respond(true, (new Payment())->getAllUsers(), 'OK'); return;
             case 'getMyInventory':  $this->respond(true, (new Exam())->getMyInventory((int)$_SESSION['user_id']), 'Inventory loaded.'); return;
-            
-            // UPDATED: Pass the user ID to getActiveExams
             case 'getActiveExams': $this->respond(true, (new Exam())->getActiveExams((int)$_SESSION['user_id']), 'Active exams loaded.'); return;            
-            
             case 'getStudentStats': $this->respond(true, (new Dashboard())->getStudentStats((int)$_SESSION['user_id']), 'Stats loaded.'); return;
             
             default:
@@ -316,6 +314,14 @@ class ApiHandler {
         $userId = (int)$_SESSION['user_id'];
         $data = (new Attempt())->getActiveAttempt($userId, $attemptId);
         $this->respond(true, $data, 'Attempt loaded.');
+    }
+
+    // NEW: Fetch room details without affecting dashboard methods
+    private function getRoomDetails(): void {
+        $attemptId = (int)($_GET['attempt_id'] ?? 0);
+        $userId = (int)$_SESSION['user_id'];
+        $data = (new Attempt())->getRoomDetails($userId, $attemptId);
+        $this->respond(true, $data, 'Room details loaded.');
     }
 
     private function getUserHistory(): void {
