@@ -179,6 +179,7 @@ class ApiHandler {
             case 'getMyNotifications': $this->respond(true, (new Notification())->getMyNotifications((int)$_SESSION['user_id']), 'Notifications loaded.'); return;
             case 'getOpenExams':   $this->respond(true, (new Payment())->getOpenExams(), 'OK'); return;
             case 'getAllUsers':    $this->respond(true, (new Payment())->getAllUsers(), 'OK'); return;
+            case 'getMyInventory':  $this->respond(true, (new Exam())->getMyInventory((int)$_SESSION['user_id']), 'Inventory loaded.'); return;
             
             // UPDATED: Pass the user ID to getActiveExams
             case 'getActiveExams': $this->respond(true, (new Exam())->getActiveExams((int)$_SESSION['user_id']), 'Active exams loaded.'); return;            

@@ -13,7 +13,19 @@ class Exam extends Database {
              ORDER BY created_at DESC"
         );
     }
-
+    public function getMyInventory(int $userId): array {
+        return $this->fetchAll(
+            "SELECT e.id, e.title, e.subject, e.duration_minutes, e.question_count, 
+                    e.starts_at, e.ends_at, e.status as exam_status,
+                    p.paid_at,
+                    (SELECT COUNT(*) FROM exam_attempts a WHERE a.exam_id = e.id AND a.user_id = ? AND a.status = 'submitted') as is_taken
+             FROM exams e
+             JOIN payments p ON e.id = p.exam_id
+             WHERE p.user_id = ? AND p.status = 'success'
+             ORDER BY p.paid_at DESC",
+            [$userId, $userId]
+        );
+    }
     public function getBySlug(string $slug): ?array {
         $exam = $this->fetchOne(
             "SELECT * FROM exams WHERE slug = ? AND status != 'deleted'",
