@@ -173,7 +173,8 @@ class ApiHandler {
             case 'getCurrentUser': $this->getCurrentUser(); return;
             case 'getBySlug':      $this->getBySlug(); return; 
             case 'getActive':      $this->getActiveAttempt(); return;
-            case 'getRoomDetails': $this->getRoomDetails(); return; // NEW: Exam Room Details
+            case 'getRoomDetails': $this->getRoomDetails(); return;
+            case 'getMyReports':   $this->respond(true, (new Result())->getMyReports((int)$_SESSION['user_id']), 'Reports loaded.'); return;
             case 'getHistory':     $this->getUserHistory(); return;
             case 'getMyComplaints':$this->getMyComplaints(); return;
             case 'getAnalytics':   $this->getExamAnalytics(); return;

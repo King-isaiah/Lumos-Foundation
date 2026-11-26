@@ -172,7 +172,7 @@
 
           if (isTaken) {
             badge = `<span class="status-badge status-completed">Completed</span>`;
-            actionBtn = `<a href="./analytics.php?exam_id=${exam.id}" class="btn-action btn-result">View Result</a>`;
+            actionBtn = `<a href="./reports.php?exam_id=${exam.id}" class="btn-action btn-result">View Result</a>`;
           } else if (now < startTime) {
             badge = `<span class="status-badge status-available">Upcoming</span>`;
             actionBtn = `<button class="btn-action btn-disabled" disabled>Not Started Yet</button>`;

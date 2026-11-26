@@ -49,7 +49,8 @@ async function loadLayout() {
           <a href="analytics.php" class="nav-link ${currentPage === 'analytics.php' ? 'active' : ''}">Analytics</a>
           <a href="inventory.php" class="nav-link ${currentPage === 'inventory.php' ? 'active' : ''}">Inventory</a>
           <a href="leaderboard.php" class="nav-link ${currentPage === 'leaderboard.php' ? 'active' : ''}">Leaderboard</a>
-          <a href="reports.php" class="nav-link ${currentPage === 'reports.php' ? 'active' : ''}">Financial Report</a>
+          <a href="finances.php" class="nav-link ${currentPage === 'finances.php' ? 'active' : ''}">Financial Report</a>
+          <a href="reports.php" class="nav-link ${currentPage === 'reports.php' ? 'active' : ''}">Report</a>
         </div>
       </div>
 
@@ -92,7 +93,7 @@ async function loadLayout() {
     </nav>
   `;
 
-  // --- NEW: INJECT TOP HEADER (Only for students) ---
+
   let headerHTML = '';
   if (isStudent) {
     document.body.classList.add('has-top-nav'); // Adds the padding class to CSS
