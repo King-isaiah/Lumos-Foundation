@@ -5,8 +5,10 @@ require_once __DIR__ . '/Validator.php';
 class Complaint extends Database {
     
     public function create(int $userId, array $input): array {
+        // Added max length to subject to prevent DB overflow
         $data = (new Validator($input))
             ->required('subject', 'message')
+            ->max('subject', 200)
             ->validate();
 
         $id = $this->insert('complaints', [
@@ -29,6 +31,8 @@ class Complaint extends Database {
         );
     }
 
+    // --- Admin Methods (Untouched) ---
+
     public function getAll(): array {
         return $this->fetchAll(
             "SELECT c.*, u.first_name, u.last_name, u.email 
@@ -38,7 +42,6 @@ class Complaint extends Database {
         );
     }
 
-    // NEW: Moved from ApiHandler
     public function resolve(int $adminId, array $input): array {
         $complaintId = (int)($input['complaint_id'] ?? 0);
         $response = $input['response'] ?? '';

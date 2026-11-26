@@ -31,6 +31,7 @@
     
     .btn { background: var(--burnt-orange); color: var(--cream); padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; width: 100%; margin-top: 10px; }
     .btn:hover { background: #e66a15; }
+    .btn:disabled { opacity: 0.7; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -77,7 +78,7 @@
   </div>
 
   <script type="module">
-    import { api, ApiError } from '../assets/js/core/api.js';
+    import { api } from '../assets/js/core/api.js';
     import { toast } from '../assets/js/core/toast.js';
     import '../assets/js/core/layout.js';
 
@@ -109,12 +110,23 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = form.querySelector('button');
-      btn.disabled = true; btn.textContent = 'Saving...';
+      const originalBtnText = btn.textContent;
+      btn.disabled = true; 
+      btn.textContent = 'Saving...';
 
+      // 1. Handle Image Conversion to Base64
       let avatarBase64 = null;
       const fileInput = form.elements.avatar;
       if (fileInput.files.length > 0) {
         const file = fileInput.files[0];
+        
+        // Optional: Prevent uploading massive files (e.g., > 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("Image is too large. Please choose a file under 5MB.");
+            btn.disabled = false; btn.textContent = originalBtnText;
+            return;
+        }
+
         avatarBase64 = await new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = (e) => resolve(e.target.result);
@@ -122,6 +134,7 @@
         });
       }
 
+      // 2. Build the payload
       const body = {
         first_name: form.elements.first_name.value.trim(),
         last_name: form.elements.last_name.value.trim(),
@@ -131,12 +144,23 @@
       if (avatarBase64) body.avatar_base64 = avatarBase64;
 
       try {
-        await api('users', 'update_profile', { method: 'POST', body });
+        // 3. Send to API
+        const updatedUser = await api('users', 'update_profile', { method: 'POST', body });
+        
+        // 4. Instantly update the UI without reloading the page
+        document.getElementById('fullName').textContent = `${updatedUser.first_name} ${updatedUser.last_name}`;
+        if (updatedUser.avatar_url) {
+            document.getElementById('avatarImg').src = updatedUser.avatar_url;
+        }
+
         toast.success('Profile updated successfully!');
-        setTimeout(() => location.reload(), 1500);
+        form.elements.avatar.value = ''; // Clear the file input
+        
       } catch (err) {
-        toast.error(err.message);
-        btn.disabled = false; btn.textContent = 'Save Changes';
+        toast.error(err.message || 'Failed to update profile.');
+      } finally {
+        btn.disabled = false; 
+        btn.textContent = originalBtnText;
       }
     });
 

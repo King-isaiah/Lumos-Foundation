@@ -74,6 +74,7 @@ class ApiHandler {
         'toggle_status' => ['entity' => 'users',      'method' => 'toggleStatus', 'needs_user' => false],
         'log_receipt'   => ['entity' => 'payments',   'method' => 'logReceiptGeneration', 'needs_user' => true],
         'verify'        => ['entity' => 'payments',   'method' => 'verifyTransaction', 'needs_user' => false],
+        'update_profile' => ['entity' => 'users',     'method' => 'updateProfile', 'needs_user' => true],
     ];
 
     private const AUTH_TASKS = [

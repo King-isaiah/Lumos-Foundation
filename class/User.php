@@ -106,7 +106,7 @@ class User extends Database {
         $otp = (string)random_int(100000, 999999);
         
         $this->insert('email_verifications', [
-            'user_id'    => $id, // <--- FIXED: Changed from unique_id to user_id
+            'user_id'    => $id,
             'code_hash'  => password_hash($otp, PASSWORD_BCRYPT, ['cost' => 10]),
             'expires_at' => date('Y-m-d H:i:s', time() + 300)
         ]);
@@ -126,12 +126,9 @@ class User extends Database {
     // Update Methods
     // ---------------------------------------------------------
     public function updateProfile(int $id, array $input): array {
-        $allowed = ['first_name', 'last_name', 'phone', 'gender', 'avatar_url'];
+        // 1. Filter allowed text fields (excluding avatar_base64 for now)
+        $allowed = ['first_name', 'last_name', 'phone', 'gender'];
         $patch   = array_intersect_key($input, array_flip($allowed));
-
-        if (empty($patch)) {
-            throw new Exception('Nothing to update.', 400);
-        }
 
         if (isset($patch['first_name'])) $patch['first_name'] = trim($patch['first_name']);
         if (isset($patch['last_name']))  $patch['last_name']  = trim($patch['last_name']);
@@ -140,7 +137,26 @@ class User extends Database {
             throw new Exception('Invalid gender value.', 400);
         }
 
+        // 2. Handle the Avatar if a new Base64 string was provided
+        if (!empty($input['avatar_base64'])) {
+            try {
+                // Upload to ImgBB and get the URL
+                $avatarUrl = ImageUploader::uploadToImgBB($input['avatar_base64']);
+                $patch['avatar_url'] = $avatarUrl; 
+            } catch (Exception $e) {
+                Logger::error('Avatar upload failed during profile update', ['user_id' => $id, 'error' => $e->getMessage()]);
+                throw new Exception('Failed to upload profile picture. Please try a smaller image.', 400);
+            }
+        }
+
+        if (empty($patch)) {
+            throw new Exception('Nothing to update.', 400);
+        }
+
+        // 3. Update the database
         $this->update('users', $patch, 'id = ?', [$id]);
+        
+        // 4. Return the updated user object so the frontend can refresh instantly
         return $this->getById($id);
     }
 
