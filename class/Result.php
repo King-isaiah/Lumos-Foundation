@@ -39,10 +39,9 @@ class Result extends Database {
     }
 
     /**
-     * NEW: For Student: Fetches all exams the student paid for + their results + stats
+     * For Student: Fetches all exams the student paid for + their results + stats
      */
     public function getMyReports(int $userId): array {
-        // 1. Fetch all paid exams for this user
         $sql = "SELECT 
                     e.id as exam_id, 
                     e.title, 
@@ -65,16 +64,13 @@ class Result extends Database {
                 
         $reports = $this->fetchAll($sql, [$userId, $userId]);
 
-        // 2. For exams that were taken, get additional stats (Rank, Total Students, Class Average)
         foreach ($reports as &$r) {
             if ($r['attempt_id']) {
-                // Total students who submitted this exam
                 $r['total_students'] = (int)$this->fetchValue(
                     "SELECT COUNT(*) FROM exam_attempts WHERE exam_id = ? AND status = 'submitted'",
                     [$r['exam_id']]
                 );
 
-                // Calculate Rank
                 $rankQuery = "SELECT COUNT(*) + 1 as `rank` 
                               FROM exam_attempts 
                               WHERE exam_id = ? AND status = 'submitted' 
@@ -86,13 +82,11 @@ class Result extends Database {
                     $r['time_spent']
                 ]);
 
-                // Class Average
                 $r['class_average'] = round((float)$this->fetchValue(
                     "SELECT AVG(score_percentage) FROM exam_attempts WHERE exam_id = ? AND status = 'submitted'",
                     [$r['exam_id']]
                 ), 1);
                 
-                // Formatting Time
                 $mins = floor($r['time_spent'] / 60);
                 $secs = $r['time_spent'] % 60;
                 $r['time_spent_formatted'] = "{$mins}m {$secs}s";
@@ -100,5 +94,54 @@ class Result extends Database {
         }
 
         return $reports;
+    }
+
+    /**
+     * NEW: Get a list of all exams that have at least 1 submitted attempt.
+     */
+    public function getLeaderboardExams(): array {
+        $sql = "SELECT 
+                    e.id, 
+                    e.title, 
+                    e.subject, 
+                    COUNT(a.id) as total_participants,
+                    MAX(a.score_percentage) as top_score
+                FROM exams e
+                JOIN exam_attempts a ON e.id = a.exam_id AND a.status = 'submitted'
+                GROUP BY e.id
+                ORDER BY e.created_at DESC";
+                
+        return $this->fetchAll($sql);
+    }
+
+    /**
+     * NEW: Get the leaderboard for a specific exam.
+     */
+    public function getExamLeaderboard(int $examId): array {
+        $sql = "SELECT 
+                    a.score_percentage as score,
+                    a.duration_seconds,
+                    u.first_name,
+                    u.last_name,
+                    u.avatar_url
+                FROM exam_attempts a
+                JOIN users u ON a.user_id = u.id
+                WHERE a.exam_id = ? AND a.status = 'submitted'
+                ORDER BY a.score_percentage DESC, a.duration_seconds ASC";
+                
+        $results = $this->fetchAll($sql, [$examId]);
+
+        foreach ($results as $index => &$row) {
+            // Format name for privacy (e.g., "John D.")
+            $row['display_name'] = $row['first_name'] . ' ' . substr($row['last_name'], 0, 1) . '.';
+            
+            $mins = floor($row['duration_seconds'] / 60);
+            $secs = $row['duration_seconds'] % 60;
+            $row['time_taken'] = "{$mins}m {$secs}s";
+            
+            $row['rank'] = $index + 1;
+        }
+
+        return $results;
     }
 }

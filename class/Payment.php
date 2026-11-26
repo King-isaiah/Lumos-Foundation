@@ -5,8 +5,8 @@ require_once __DIR__ . '/Exam.php';
 require_once __DIR__ . '/User.php';
 require_once __DIR__ . '/Logger.php';
 require_once __DIR__ . '/../config.php';
-require_once __DIR__ . '/Notification.php'; // ADDED
-require_once __DIR__ . '/Mailer.php';       // ADDED
+require_once __DIR__ . '/Notification.php';
+require_once __DIR__ . '/Mailer.php';
 
 class Payment extends Database {
     
@@ -18,7 +18,6 @@ class Payment extends Database {
             throw new Exception('This exam is not currently open for registration.', 400);
         }
 
-        // Check if already paid
         $existing = $this->fetchOne("SELECT id FROM payments WHERE user_id = ? AND exam_id = ? AND status = 'success'", [$userId, $examId]);
         if ($existing) {
             throw new Exception('You have already paid for this exam.', 400);
@@ -26,7 +25,6 @@ class Payment extends Database {
 
         $reference = 'LUMOS-' . strtoupper(bin2hex(random_bytes(4))) . '-' . time();
         
-        // Save as pending
         $this->insert('payments', [
             'user_id' => $userId,
             'exam_id' => $examId,
@@ -36,7 +34,6 @@ class Payment extends Database {
         ]);
 
         $paystack = new Paystack();
-        // FIXED: Pointing to the new callback location in the students folder
         $callbackUrl = Config::appUrl() . '/public/students/payment-callback.php?reference=' . $reference;
         
         $result = $paystack->initialize($user['email'], $exam['price_kobo'], $reference, $callbackUrl);
@@ -144,7 +141,6 @@ class Payment extends Database {
             throw new Exception('Payment record not found.', 404);
         }
 
-        // Idempotency: If already success, return early
         if ($payment['status'] === 'success') {
             return ['status' => 'success', 'message' => 'Payment already verified.', 'exam_id' => $payment['exam_id']];
         }
@@ -153,7 +149,6 @@ class Payment extends Database {
         $verified = $paystack->verify($reference);
 
         if ($verified && $verified['status'] === 'success' && $verified['amount'] == $payment['amount_kobo']) {
-            // Payment is legitimate. Update the DB.
             $this->update('payments', [
                 'status' => 'success',
                 'gateway_ref' => $verified['id'],
@@ -161,13 +156,11 @@ class Payment extends Database {
                 'gateway_response_json' => json_encode($verified)
             ], 'id = ?', [$payment['id']]);
 
-            // --- NEW: Send Email and Save Notification ---
             try {
                 $user = (new User())->getById((int)$payment['user_id']);
                 $exam = (new Exam())->getById((int)$payment['exam_id']);
                 $amountNaira = number_format($payment['amount_kobo'] / 100, 2);
 
-                // 1. Create in-app notification
                 (new Notification())->create(
                     (int)$payment['user_id'],
                     'payment',
@@ -176,31 +169,25 @@ class Payment extends Database {
                     ['payment_id' => $payment['id'], 'exam_id' => $payment['exam_id']]
                 );
 
-                // 2. Send email
                 (new Mailer())->sendPaymentConfirmation($user['email'], $user['first_name'], $exam['title'], $amountNaira);
 
             } catch (Throwable $e) {
-                // We log the error but don't stop the payment success flow if email fails
                 Logger::error('Failed to send payment notification/email', ['error' => $e->getMessage(), 'payment_id' => $payment['id']]);
             }
-            // ---------------------------------------------
 
             Logger::info('Payment verified and recorded', ['payment_id' => $payment['id'], 'reference' => $reference]);
             
             return ['status' => 'success', 'message' => 'Payment verified successfully.', 'exam_id' => $payment['exam_id']];
         }
 
-        // Verification failed
         Logger::error('Payment verification failed', ['reference' => $reference, 'response' => $verified]);
         throw new Exception('Payment verification failed. Please contact support if you were debited.', 400);
     }
 
     public function processWebhook(string $reference, array $paystackData): void {
-        // Check if pending
         $payment = $this->fetchOne("SELECT id, user_id, exam_id, status, amount_kobo FROM payments WHERE reference = ?", [$reference]);
         
         if ($payment && $payment['status'] === 'pending') {
-            // Mark as success!
             $this->update('payments', [
                 'status' => 'success',
                 'gateway_ref' => $paystackData['id'],
@@ -208,13 +195,11 @@ class Payment extends Database {
                 'gateway_response_json' => json_encode($paystackData)
             ], 'id = ?', [$payment['id']]);
 
-            // --- Send Email and Save Notification ---
             try {
                 $user = (new User())->getById((int)$payment['user_id']);
                 $exam = (new Exam())->getById((int)$payment['exam_id']);
                 $amountNaira = number_format($payment['amount_kobo'] / 100, 2);
 
-                // 1. Create in-app notification
                 (new Notification())->create(
                     (int)$payment['user_id'],
                     'payment', 
@@ -223,7 +208,6 @@ class Payment extends Database {
                     ['payment_id' => $payment['id'], 'exam_id' => $payment['exam_id']]
                 );
 
-                // 2. Send email
                 (new Mailer())->sendPaymentConfirmation($user['email'], $user['first_name'], $exam['title'], $amountNaira);
 
             } catch (Throwable $e) {
@@ -233,10 +217,64 @@ class Payment extends Database {
             Logger::info('Payment confirmed via webhook', ['reference' => $reference, 'amount' => $payment['amount_kobo']]);
         }
     }
+
     public function getMyPayments(int $userId): array {
         return $this->fetchAll(
             "SELECT exam_id, status FROM payments WHERE user_id = ? AND status = 'success'",
             [$userId]
         );
+    }
+
+    /**
+     * NEW: Fetch ONLY the logged-in user's financial ledger (Payments + Payouts).
+     * This is highly scalable. If you add withdrawals or refunds later, just add them to the UNION.
+     */
+    public function getMyFinancialLedger(int $userId): array {
+        $sql = "
+            SELECT 
+                'payment' as type,
+                p.id as transaction_id,
+                p.paid_at as transaction_date,
+                e.title as exam_title,
+                p.amount_kobo as amount,
+                'out' as flow,
+                p.status as status
+            FROM payments p
+            JOIN exams e ON p.exam_id = e.id
+            WHERE p.user_id = ? AND p.status = 'success'
+            
+            UNION ALL
+            
+            SELECT 
+                'payout' as type,
+                py.id as transaction_id,
+                py.created_at as transaction_date,
+                e.title as exam_title,
+                py.amount_kobo as amount,
+                'in' as flow,
+                py.status as status
+            FROM payouts py
+            JOIN exams e ON py.exam_id = e.id
+            WHERE py.user_id = ?
+            
+            ORDER BY transaction_date DESC
+        ";
+
+        $ledger = $this->fetchAll($sql, [$userId, $userId]);
+
+        foreach ($ledger as &$item) {
+            $item['amount_formatted'] = '₦' . number_format($item['amount'] / 100, 2);
+            $item['date_formatted'] = date('M j, Y g:i A', strtotime($item['transaction_date']));
+            
+            if ($item['type'] === 'payment') {
+                $item['display_type'] = 'Exam Registration';
+                $item['status_badge'] = 'completed'; // Payments are only fetched if success
+            } else {
+                $item['display_type'] = 'Prize Payout';
+                $item['status_badge'] = $item['status'] === 'paid' ? 'completed' : 'pending';
+            }
+        }
+
+        return $ledger;
     }
 }

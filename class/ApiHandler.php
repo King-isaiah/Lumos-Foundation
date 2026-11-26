@@ -166,6 +166,40 @@ class ApiHandler {
         }
     }
 
+    // private function handleGet(): void {
+    //     switch ($this->action) {
+    //         case 'getAll':         $this->getAll(); return;
+    //         case 'get':            $this->get(); return;
+    //         case 'getCurrentUser': $this->getCurrentUser(); return;
+    //         case 'getBySlug':      $this->getBySlug(); return; 
+    //         case 'getActive':      $this->getActiveAttempt(); return;
+    //         case 'getRoomDetails': $this->getRoomDetails(); return;
+    //         case 'getMyReports':   $this->respond(true, (new Result())->getMyReports((int)$_SESSION['user_id']), 'Reports loaded.'); return;
+    //         case 'getHistory':     $this->getUserHistory(); return;
+    //         case 'getMyComplaints':$this->getMyComplaints(); return;
+    //         case 'getAnalytics':   $this->getExamAnalytics(); return;
+    //         case 'getMyNotifications': $this->respond(true, (new Notification())->getMyNotifications((int)$_SESSION['user_id']), 'Notifications loaded.'); return;
+    //         case 'getOpenExams':   $this->respond(true, (new Payment())->getOpenExams(), 'OK'); return;
+    //         case 'getAllUsers':    $this->respond(true, (new Payment())->getAllUsers(), 'OK'); return;
+    //         case 'getMyInventory':  $this->respond(true, (new Exam())->getMyInventory((int)$_SESSION['user_id']), 'Inventory loaded.'); return;
+    //         case 'getActiveExams': $this->respond(true, (new Exam())->getActiveExams((int)$_SESSION['user_id']), 'Active exams loaded.'); return;            
+    //         case 'getStudentStats': $this->respond(true, (new Dashboard())->getStudentStats((int)$_SESSION['user_id']), 'Stats loaded.'); return;
+            
+    //         // NEW: Leaderboard routes
+    //         case 'getLeaderboardExams': 
+    //             $this->respond(true, (new Result())->getLeaderboardExams(), 'Leaderboard exams loaded.'); 
+    //             return;
+    //         case 'getExamLeaderboard': 
+    //             $examId = (int)($_GET['exam_id'] ?? 0);
+    //             if (!$examId) throw new Exception('exam_id is required.', 400);
+    //             $this->respond(true, (new Result())->getExamLeaderboard($examId), 'Exam leaderboard loaded.'); 
+    //             return;
+            
+    //         default:
+    //             $this->respond(false, null, 'Invalid GET action.', 400);
+    //     }
+    // }
+
     private function handleGet(): void {
         switch ($this->action) {
             case 'getAll':         $this->getAll(); return;
@@ -184,6 +218,19 @@ class ApiHandler {
             case 'getMyInventory':  $this->respond(true, (new Exam())->getMyInventory((int)$_SESSION['user_id']), 'Inventory loaded.'); return;
             case 'getActiveExams': $this->respond(true, (new Exam())->getActiveExams((int)$_SESSION['user_id']), 'Active exams loaded.'); return;            
             case 'getStudentStats': $this->respond(true, (new Dashboard())->getStudentStats((int)$_SESSION['user_id']), 'Stats loaded.'); return;
+            
+            // --- ADD THIS LINE HERE ---
+            case 'getFinancialLedger': $this->respond(true, (new Payment())->getMyFinancialLedger((int)$_SESSION['user_id']), 'Ledger loaded.'); return;
+
+            // NEW: Leaderboard routes
+            case 'getLeaderboardExams': 
+                $this->respond(true, (new Result())->getLeaderboardExams(), 'Leaderboard exams loaded.'); 
+                return;
+            case 'getExamLeaderboard': 
+                $examId = (int)($_GET['exam_id'] ?? 0);
+                if (!$examId) throw new Exception('exam_id is required.', 400);
+                $this->respond(true, (new Result())->getExamLeaderboard($examId), 'Exam leaderboard loaded.'); 
+                return;
             
             default:
                 $this->respond(false, null, 'Invalid GET action.', 400);
@@ -317,7 +364,6 @@ class ApiHandler {
         $this->respond(true, $data, 'Attempt loaded.');
     }
 
-    // NEW: Fetch room details without affecting dashboard methods
     private function getRoomDetails(): void {
         $attemptId = (int)($_GET['attempt_id'] ?? 0);
         $userId = (int)$_SESSION['user_id'];
