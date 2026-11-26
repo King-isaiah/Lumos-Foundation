@@ -46,7 +46,7 @@
     .btn-view { background: transparent; border: 1px solid var(--olive-green); color: var(--cream); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s; }
     .btn-view:hover { background: var(--olive-green); }
 
-    /* PAGINATION STYLES (From your core file) */
+    /* PAGINATION STYLES */
     .page-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--olive-green); color: var(--cream); padding: 6px 12px; margin: 0 2px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
     .page-btn:hover:not(:disabled) { background: var(--olive-green); }
     .page-btn.active { background: var(--burnt-orange); border-color: var(--burnt-orange); font-weight: bold; }
@@ -58,7 +58,6 @@
     .receipt-box { background: #fff; color: #333; width: 90%; max-width: 500px; border-radius: 8px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-family: 'Inter', sans-serif; position: relative; }
     .receipt-close { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
     
-    /* Receipt Specific Typography */
     .receipt-header { text-align: center; margin-bottom: 30px; }
     .receipt-logo { font-family: 'Fraunces'; font-size: 32px; font-weight: 700; color: #1F3B2C; margin: 0; }
     .receipt-sub { color: #666; font-size: 12px; margin-top: 5px; }
@@ -71,7 +70,6 @@
     .btn-print { width: 100%; padding: 14px; background: var(--burnt-orange); color: #fff; border: none; border-radius: 6px; font-weight: 600; font-size: 16px; cursor: pointer; margin-top: 20px; transition: 0.2s; }
     .btn-print:hover { background: #b34a00; }
 
-    /* PRINT MEDIA QUERY - Hides everything except the receipt */
     @media print {
       body * { visibility: hidden; }
       .receipt-overlay, .receipt-box, .receipt-box * { visibility: visible; }
@@ -85,7 +83,6 @@
   <div style="padding: 40px; max-width: 1200px; margin: 0 auto;">
     <h1 class="page-title">Financial Reports</h1>
     
-    <!-- Summary Cards -->
     <div class="summary-grid">
       <div class="summary-card">
         <div class="summary-label">Total Spent (Exams)</div>
@@ -101,7 +98,6 @@
       </div>
     </div>
 
-    <!-- Transaction Table -->
     <div class="table-container">
       <table>
         <thead>
@@ -120,7 +116,6 @@
       </table>
     </div>
 
-    <!-- Pagination Container -->
     <div id="paginationContainer"></div>
   </div>
 
@@ -164,7 +159,8 @@
         <span id="recAmount">₦0.00</span>
       </div>
 
-      <button class="btn-print" onclick="window.print()">Print / Save as PDF</button>
+      <!-- CHANGED: Now calls printAndLogReceipt() -->
+      <button class="btn-print" onclick="printAndLogReceipt()">Print / Save as PDF</button>
 
       <div class="receipt-footer">
         Thank you for using Lumos.<br>
@@ -177,14 +173,13 @@
     import { api } from '../assets/js/core/api.js';
     import { toast } from '../assets/js/core/toast.js'; 
     import '../assets/js/core/layout.js';
-    // Import the Pagination class
     import { Pagination } from '../assets/js/core/Pagination.js'; 
 
     let allTransactions = [];
     let currentUser = null;
     let paginator = null;
+    let activeReceiptTransaction = null; // Keep track of the currently open receipt
 
-    // Callback function to render the table rows for the current page
     function renderTableRows(pageData, startIndex) {
       const tbody = document.getElementById('ledgerTableBody');
       
@@ -201,7 +196,6 @@
         if (tx.status_badge === 'completed') badgeClass = 'badge-completed';
         if (tx.status === 'failed') badgeClass = 'badge-failed';
 
-        // Pass the transaction index to the receipt function
         const globalIndex = startIndex + index;
         const actionBtn = tx.status_badge === 'completed' 
           ? `<button class="btn-view" onclick="openReceipt(${globalIndex})">Receipt</button>` 
@@ -222,7 +216,6 @@
 
     async function loadFinancials() {
       try {
-        // Fetch ledger and user info in parallel
         const [ledgerData, userData] = await Promise.all([
           api('payments', 'getFinancialLedger'),
           api('users', 'getCurrentUser')
@@ -231,7 +224,6 @@
         allTransactions = ledgerData;
         currentUser = userData;
 
-        // Calculate Summary Cards (Calculated on ALL data, not just the current page)
         let totalOut = 0;
         let totalIn = 0;
 
@@ -252,8 +244,6 @@
         if (net > 0) netEl.style.color = 'var(--live-green)';
         else if (net < 0) netEl.style.color = 'var(--danger-red)';
 
-        // Initialize Pagination
-        // Show 5 rows per page
         paginator = new Pagination('paginationContainer', 5, renderTableRows);
         paginator.setData(allTransactions);
 
@@ -263,24 +253,45 @@
       }
     }
 
-    // Function to open and populate the receipt
     window.openReceipt = (index) => {
       const tx = allTransactions[index];
       if (!tx) return;
 
-      // Populate the modal fields
+      activeReceiptTransaction = tx; // Save it for the print function
+
       document.getElementById('recId').textContent = `TRX-${tx.transaction_id.toString().padStart(6, '0')}`;
       document.getElementById('recDate').textContent = tx.date_formatted;
       document.getElementById('recStudent').textContent = `${currentUser.first_name} ${currentUser.last_name}`;
       document.getElementById('recExam').textContent = tx.exam_title;
       document.getElementById('recAmount').textContent = tx.amount_formatted;
 
-      // Show modal
       document.getElementById('receiptModal').classList.add('active');
     };
 
     window.closeReceipt = () => {
       document.getElementById('receiptModal').classList.remove('active');
+      activeReceiptTransaction = null;
+    };
+
+    // NEW: Trigger print and log notification
+    window.printAndLogReceipt = async () => {
+      // 1. Trigger the browser print dialog
+      window.print();
+
+      // 2. Silently log the notification to the backend
+      if (activeReceiptTransaction && activeReceiptTransaction.type === 'payment') {
+        try {
+          await api('payments', 'log_receipt', { 
+            method: 'POST', 
+            body: { payment_id: activeReceiptTransaction.transaction_id } 
+          });
+          
+          toast.success("Receipt saved to notifications."); 
+          
+        } catch (err) {
+          console.error("Failed to log receipt generation", err);
+        }
+      }
     };
 
     loadFinancials();

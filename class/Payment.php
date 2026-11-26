@@ -225,10 +225,6 @@ class Payment extends Database {
         );
     }
 
-    /**
-     * NEW: Fetch ONLY the logged-in user's financial ledger (Payments + Payouts).
-     * This is highly scalable. If you add withdrawals or refunds later, just add them to the UNION.
-     */
     public function getMyFinancialLedger(int $userId): array {
         $sql = "
             SELECT 
@@ -268,7 +264,7 @@ class Payment extends Database {
             
             if ($item['type'] === 'payment') {
                 $item['display_type'] = 'Exam Registration';
-                $item['status_badge'] = 'completed'; // Payments are only fetched if success
+                $item['status_badge'] = 'completed';
             } else {
                 $item['display_type'] = 'Prize Payout';
                 $item['status_badge'] = $item['status'] === 'paid' ? 'completed' : 'pending';
@@ -276,5 +272,36 @@ class Payment extends Database {
         }
 
         return $ledger;
+    }
+    /**
+     * NEW: Logs a notification when a user prints/generates a receipt.
+     */
+    public function logReceiptGeneration(int $userId, array $input): void {
+        // 1. Extract the payment ID from the input array
+        $paymentId = (int)($input['payment_id'] ?? 0);
+        
+        if (!$paymentId) {
+            throw new Exception('Payment ID is required.', 400);
+        }
+
+        $payment = $this->fetchOne(
+            "SELECT p.amount_kobo, e.title as exam_title 
+             FROM payments p 
+             JOIN exams e ON p.exam_id = e.id 
+             WHERE p.id = ? AND p.user_id = ? AND p.status = 'success'", 
+            [$paymentId, $userId]
+        );
+
+        if ($payment) {
+            $amount = number_format($payment['amount_kobo'] / 100, 2);
+            
+            (new Notification())->create(
+                $userId,
+                'payment', // Changed from 'receipt' to 'payment' because your DB ENUM only allows specific types
+                'Receipt Generated',
+                "You successfully generated a receipt for your ₦{$amount} payment for {$payment['exam_title']}.",
+                ['payment_id' => $paymentId]
+            );
+        }
     }
 }
