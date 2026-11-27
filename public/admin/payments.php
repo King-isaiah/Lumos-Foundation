@@ -30,6 +30,11 @@
     
     .btn-verify { background: #10b981; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: 600; }
     .btn-verify:hover { background: #059669; }
+    
+    /* Pagination overrides for Admin */
+    .page-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 6px 12px; margin: 0 2px; border-radius: 4px; cursor: pointer; }
+    .page-btn:hover:not(:disabled) { background: var(--gold); color: #000; }
+    .page-btn.active { background: var(--gold); color: #000; font-weight: bold; border-color: var(--gold); }
   </style>
 </head>
 <body>
@@ -57,7 +62,7 @@
     </tbody>
   </table>
 
-  <div id="paginationContainer" class="pagination-container"></div>
+  <div id="paginationContainer" class="pagination-container" style="margin-top: 20px;"></div>
 
   <!-- MANUAL CREATION MODAL -->
   <div id="manualModal" class="modal-overlay">
@@ -83,12 +88,15 @@
   <script type="module">
     import { api } from '../assets/js/core/api.js';
     import { toast } from '../assets/js/core/toast.js';
-    import { Pagination } from '../assets/js/core/pagination.js';
+    // Make sure this path matches where your Pagination file actually is
+    import { Pagination } from '../assets/js/core/Pagination.js'; 
     import '../assets/js/core/layout.js';
 
     let allPayments = [];
     let allUsers = [];
     let openExams = [];
+    
+    // Initialize Pagination (10 items per page)
     const paginator = new Pagination('paginationContainer', 10, renderTable);
 
     function renderTable(payments) {
@@ -103,7 +111,9 @@
         const date = new Date(p.created_at).toLocaleDateString();
         const amount = (p.amount_kobo / 100).toLocaleString();
         
-        let statusBadge = `<span class="badge-${p.status}">${p.status.toUpperCase()}</span>`;
+        // Ensure status exists before calling toUpperCase
+        const statusStr = p.status ? p.status.toUpperCase() : 'UNKNOWN';
+        let statusBadge = `<span class="badge-${p.status}">${statusStr}</span>`;
         
         // Show verify button ONLY for pending/failed payments
         let actionBtn = '';
@@ -132,14 +142,15 @@
 
     async function loadData() {
       try {
+        // 1. Load all payments
         allPayments = await api('payments', 'getAll');
         paginator.setData(allPayments);
 
-        // Load dropdown data in the background
-        allUsers = await api('payments', 'get', { action: 'getAllUsers' }); // We mapped this in the API Handler
-        openExams = await api('payments', 'get', { action: 'getOpenExams' }); // We mapped this in the API Handler
+        // 2. Load dropdown data in the background using the correct endpoints
+        allUsers = await api('payments', 'getAllUsers');
+        openExams = await api('payments', 'getOpenExams');
 
-        // Populate modal dropdowns
+        // 3. Populate modal dropdowns
         document.getElementById('modalUserSelect').innerHTML = allUsers.map(u => 
             `<option value="${u.id}">${u.first_name} ${u.last_name} (${u.email})</option>`
         ).join('');
@@ -164,7 +175,7 @@
       try {
         await api('payments', 'verify_manual', { method: 'POST', body: { id: id } });
         toast.success('Payment manually verified successfully.');
-        loadData();
+        loadData(); // Reload table
       } catch (err) {
         toast.error(err.message);
       }
@@ -203,14 +214,14 @@
       }
     };
 
-    // Search Logic
+    // Search Logic (Filters the global array and resets pagination)
     document.getElementById('searchInput').addEventListener('input', (e) => {
       const term = e.target.value.toLowerCase();
       const filtered = allPayments.filter(p => 
-        p.reference.toLowerCase().includes(term) || 
-        p.first_name.toLowerCase().includes(term) || 
-        p.last_name.toLowerCase().includes(term) || 
-        p.email.toLowerCase().includes(term)
+        (p.reference && p.reference.toLowerCase().includes(term)) || 
+        (p.first_name && p.first_name.toLowerCase().includes(term)) || 
+        (p.last_name && p.last_name.toLowerCase().includes(term)) || 
+        (p.email && p.email.toLowerCase().includes(term))
       );
       paginator.setData(filtered);
     });

@@ -63,6 +63,7 @@ class Payment extends Database {
         throw new Exception('Payment verification failed.', 400);
     }
 
+    // This is the method your Admin page needs
     public function getAllPayments(): array {
         return $this->fetchAll(
             "SELECT p.*, u.first_name, u.last_name, u.email, e.title as exam_title 
@@ -87,7 +88,8 @@ class Payment extends Database {
             'gateway_response_json' => json_encode(['message' => 'Manually verified by Admin'])
         ], 'id = ?', [$paymentId]);
 
-        Logger::info('Payment manually verified', ['payment_id' => $paymentId, 'admin_id' => $_SESSION['user_id']]);
+        $adminId = $_SESSION['user_id'] ?? 'SYSTEM';
+        Logger::info('Payment manually verified', ['payment_id' => $paymentId, 'admin_id' => $adminId]);
     }
 
     public function manualCreate(array $input): void {
@@ -118,7 +120,8 @@ class Payment extends Database {
             'gateway_response_json' => json_encode(['message' => 'Manually created by Admin'])
         ]);
 
-        Logger::info('Manual payment created by Admin', ['user_id' => $userId, 'exam_id' => $examId, 'admin_id' => $_SESSION['user_id']]);
+        $adminId = $_SESSION['user_id'] ?? 'SYSTEM';
+        Logger::info('Manual payment created by Admin', ['user_id' => $userId, 'exam_id' => $examId, 'admin_id' => $adminId]);
     }
 
     public function getOpenExams(): array {
@@ -273,11 +276,8 @@ class Payment extends Database {
 
         return $ledger;
     }
-    /**
-     * NEW: Logs a notification when a user prints/generates a receipt.
-     */
+
     public function logReceiptGeneration(int $userId, array $input): void {
-        // 1. Extract the payment ID from the input array
         $paymentId = (int)($input['payment_id'] ?? 0);
         
         if (!$paymentId) {
@@ -297,7 +297,7 @@ class Payment extends Database {
             
             (new Notification())->create(
                 $userId,
-                'payment', // Changed from 'receipt' to 'payment' because your DB ENUM only allows specific types
+                'payment', 
                 'Receipt Generated',
                 "You successfully generated a receipt for your ₦{$amount} payment for {$payment['exam_title']}.",
                 ['payment_id' => $paymentId]
