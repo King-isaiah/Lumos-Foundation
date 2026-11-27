@@ -6,6 +6,36 @@ require_once __DIR__ . '/Logger.php';
 
 class Payout extends Database {
     
+    // --- NEW: For Admin Master View ---
+    public function getFinishedExams(): array {
+        // Fetch open exams that have ended AND have at least 3 participants
+        return $this->fetchAll(
+            "SELECT e.id, e.title, e.subject, e.ends_at, 
+                    COUNT(a.id) as participant_count
+             FROM exams e
+             JOIN exam_attempts a ON e.id = a.exam_id AND a.status = 'submitted'
+             WHERE e.status = 'open' AND e.ends_at < NOW()
+             GROUP BY e.id
+             HAVING participant_count >= 3
+             ORDER BY e.ends_at DESC"
+        );
+    }
+
+    // --- NEW: For Admin Detail View ---
+    public function getExamParticipants(int $examId): array {
+        return $this->fetchAll(
+            "SELECT u.first_name, u.last_name, u.email,
+                    a.score_percentage, a.correct_count, a.wrong_count, 
+                    a.duration_seconds, a.submitted_at
+             FROM exam_attempts a
+             JOIN users u ON a.user_id = u.id
+             WHERE a.exam_id = ? AND a.status = 'submitted'
+             ORDER BY a.score_percentage DESC, a.duration_seconds ASC",
+            [$examId]
+        );
+    }
+
+    // --- Existing Method (Untouched) ---
     public function settleExam(int $examId): array {
         $exam = (new Exam())->getById($examId);
         if ($exam['status'] !== 'open') {
@@ -44,14 +74,18 @@ class Payout extends Database {
                 $rank = $index + 1;
                 $prizeAmount = (int)($prizePool * $splits[$rank]);
 
-                $this->insert('payouts', [
-                    'exam_id' => $examId,
-                    'user_id' => $user['user_id'],
-                    'rank_position' => $rank,
-                    'reference' => 'PAYOUT-' . strtoupper(bin2hex(random_bytes(4))),
-                    'amount_kobo' => $prizeAmount,
-                    'status' => 'pending'
-                ]);
+                // Check if payout already exists for this user and exam to avoid duplicates
+                $existing = $this->fetchValue("SELECT COUNT(*) FROM payouts WHERE exam_id = ? AND user_id = ?", [$examId, $user['user_id']]);
+                if (!$existing) {
+                    $this->insert('payouts', [
+                        'exam_id' => $examId,
+                        'user_id' => $user['user_id'],
+                        'rank_position' => $rank,
+                        'reference' => 'PAYOUT-' . strtoupper(bin2hex(random_bytes(4))),
+                        'amount_kobo' => $prizeAmount,
+                        'status' => 'pending'
+                    ]);
+                }
             }
 
             $this->update('exams', ['status' => 'settled'], 'id = ?', [$examId]);
@@ -64,6 +98,7 @@ class Payout extends Database {
         }
     }
 
+    // --- Existing Method (Untouched) ---
     public function pay(array $input): array {
         $payoutId = (int)($input['payout_id'] ?? 0);
         $bankCode = $input['bank_code'] ?? '';
@@ -105,6 +140,7 @@ class Payout extends Database {
         }
     }
 
+    // --- Existing Method (Untouched) ---
     public function getPendingPayouts(): array {
         return $this->fetchAll(
             "SELECT p.id, p.amount_kobo, p.rank_position, e.title as exam_title, u.first_name, u.last_name 

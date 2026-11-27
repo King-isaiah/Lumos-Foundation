@@ -181,6 +181,11 @@ class ApiHandler {
             case 'getHistory':     $this->getUserHistory(); return;
             case 'getMyComplaints':$this->getMyComplaints(); return;
             case 'getAnalytics':   $this->getExamAnalytics(); return;
+            case 'getFinishedExams': $this->respond(true, (new Payout())->getFinishedExams(), 'Finished exams loaded.'); 
+                return;
+            case 'getExamParticipants': $examId = (int)($_GET['exam_id'] ?? 0); if (!$examId) throw new Exception('exam_id is required.', 400);
+                $this->respond(true, (new Payout())->getExamParticipants($examId), 'Participants loaded.'); 
+                return;
             case 'getMyNotifications': $this->respond(true, (new Notification())->getMyNotifications((int)$_SESSION['user_id']), 'Notifications loaded.'); return;
             case 'getOpenExams':   $this->respond(true, (new Payment())->getOpenExams(), 'OK'); return;
             case 'getAllUsers':    $this->respond(true, (new Payment())->getAllUsers(), 'OK'); return;

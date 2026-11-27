@@ -24,7 +24,14 @@ class Auth extends Database {
             session_start();
         }
     }
-
+    public static function requireAdmin(): void {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        $role = $_SESSION['role'] ?? '';
+        if ($role !== 'admin' && $role !== 'super_admin') {
+            header('Location: ' . Config::appUrl() . '/public/login.php');
+            exit;
+        }
+    }
     public function login(array $input): array {
         $data = (new Validator($input))
             ->required('email', 'password')
