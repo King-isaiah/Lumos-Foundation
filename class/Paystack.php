@@ -140,4 +140,27 @@ class Paystack {
         
         return $response['data'];
     }
+        /**
+     * Verifies an account number and returns the account holder's name.
+     * Standard procedure before saving bank details.
+     */
+    public function resolveAccount(string $accountNumber, string $bankCode): string {
+        $ch = curl_init("https://api.paystack.co/bank/resolve?account_number={$accountNumber}&bank_code={$bankCode}");
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Authorization: Bearer {$this->secretKey}",
+            "Content-Type: application/json"
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        $response = json_decode(curl_exec($ch), true);
+        curl_close($ch);
+
+        if (!$response || !$response['status']) {
+            throw new Exception('Could not verify account. Please check your details.');
+        }
+        
+        return $response['data']['account_name'];
+    }
 }

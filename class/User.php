@@ -207,7 +207,44 @@ class User extends Database {
             'admin_id' => $_SESSION['user_id']
         ]);
     }
+        // --- NEW: Fetch Bank List from Paystack ---
+    public function getBankList(): array {
+        // You can cache this in your settings table later to avoid hitting Paystack limits
+        $ch = curl_init("https://api.paystack.co/bank?currency=NGN");
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer " . Config::paystack()['secret_key']]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $response = json_decode(curl_exec($ch), true);
+        curl_close($ch);
+        return $response['data'] ?? [];
+    }
 
+    // --- Save and Verify Bank Details ---
+    public function updateBankDetails(int $id, array $input): array {
+        $bankCode = trim($input['bank_code'] ?? '');
+        $accountNumber = trim($input['account_number'] ?? '');
+        $bankName = trim($input['bank_name'] ?? '');
+
+        if (empty($bankCode) || empty($accountNumber) || empty($bankName)) {
+            throw new Exception('Please provide both bank and account number.', 400);
+        }
+
+        // 1. Verify the account number with Paystack
+        $paystack = new \Paystack();
+        $accountName = $paystack->resolveAccount($accountNumber, $bankCode);
+
+        // 2. Update the user's record
+        $this->update('users', [
+            'bank_name' => $bankName,
+            'bank_code' => $bankCode,
+            'account_number' => $accountNumber,
+            'account_name' => $accountName,
+            // We reset recipient_code so it gets generated fresh when they win
+            'recipient_code' => null 
+        ], 'id = ?', [$id]);
+
+        return ['account_name' => $accountName];
+    }
     // ---------------------------------------------------------
     // Helpers
     // ---------------------------------------------------------

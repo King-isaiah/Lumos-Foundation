@@ -72,6 +72,7 @@ class ApiHandler {
         'verify_manual' => ['entity' => 'payments',   'method' => 'manualVerify', 'needs_user' => false],
         'create_manual' => ['entity' => 'payments',   'method' => 'manualCreate', 'needs_user' => false],
         'toggle_status' => ['entity' => 'users',      'method' => 'toggleStatus', 'needs_user' => false],
+        'update_bank_details' => ['entity' => 'users', 'method' => 'updateBankDetails', 'needs_user' => true],
         'log_receipt'   => ['entity' => 'payments',   'method' => 'logReceiptGeneration', 'needs_user' => true],
         'verify'        => ['entity' => 'payments',   'method' => 'verifyTransaction', 'needs_user' => false],
         'update_profile' => ['entity' => 'users',     'method' => 'updateProfile', 'needs_user' => true],
@@ -181,6 +182,7 @@ class ApiHandler {
             case 'getHistory':     $this->getUserHistory(); return;
             case 'getMyComplaints':$this->getMyComplaints(); return;
             case 'getAnalytics':   $this->getExamAnalytics(); return;
+            case 'getBanks': $this->respond(true, (new User())->getBankList(), 'Banks loaded.');  return;
             case 'getFinishedExams': $this->respond(true, (new Payout())->getFinishedExams(), 'Finished exams loaded.'); 
                 return;
             case 'getExamParticipants': $examId = (int)($_GET['exam_id'] ?? 0); if (!$examId) throw new Exception('exam_id is required.', 400);

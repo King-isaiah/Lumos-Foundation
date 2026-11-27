@@ -8,8 +8,12 @@
   <link rel="stylesheet" href="../assets/css/toast.css">
   <style>
     :root {
-      --forest-green: #1F3B2C; --olive-green: #556B2F; --burnt-orange: #CC5500;
-      --clay: #C2643F; --warm-sand: #ECE2CF; --cream: #F4EEDF;
+      --forest-green: #1F3B2C; 
+      --olive-green: #556B2F; 
+      --burnt-orange: #CC5500;
+      --clay: #C2643F; 
+      --warm-sand: #ECE2CF; 
+      --cream: #F4EEDF;
     }
     body { background: var(--forest-green); color: var(--cream); font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
     .page-title { font-family: 'Fraunces'; font-size: 32px; margin-bottom: 20px; }
@@ -25,19 +29,55 @@
     /* Right Side - Form */
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
     .form-group label { display: block; font-size: 13px; color: var(--warm-sand); margin-bottom: 8px; }
-    .form-group input, .form-group select { width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid rgba(244, 238, 223, 0.2); border-radius: 8px; color: var(--cream); font-family: 'Inter'; box-sizing: border-box; }
+    .form-group input, .form-group select { width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(244, 238, 223, 0.2); border-radius: 8px; color: var(--cream); font-family: 'Inter'; box-sizing: border-box; font-size: 14px; }
     .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--burnt-orange); }
     .form-group input:disabled { opacity: 0.5; cursor: not-allowed; }
     
     .btn { background: var(--burnt-orange); color: var(--cream); padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; width: 100%; margin-top: 10px; }
     .btn:hover { background: #e66a15; }
     .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    .section-title { font-family: 'Fraunces'; font-size: 18px; color: var(--burnt-orange); margin-bottom: 15px; border-bottom: 1px solid rgba(204, 85, 0, 0.3); padding-bottom: 10px; }
+    
+    .bank-verified { display: none; background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; color: #10b981; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 14px; margin-top: 15px; text-align: center; }
+
+    /* --- CUSTOM SEARCHABLE DROPDOWN STYLES --- */
+    .custom-select-wrapper { position: relative; }
+    .custom-select-input { cursor: text; }
+    .custom-select-dropdown {
+      position: absolute; top: 100%; left: 0; right: 0;
+      background: #122117; /* Very dark green */
+      border: 1px solid var(--olive-green);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    }
+    .custom-select-dropdown.active { display: block; }
+    .custom-select-option {
+      padding: 12px 15px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--cream);
+      border-bottom: 1px solid rgba(85, 107, 47, 0.3);
+      transition: background 0.2s, color 0.2s;
+    }
+    .custom-select-option:last-child { border-bottom: none; }
+    .custom-select-option:hover {
+      background: var(--burnt-orange);
+      color: #fff;
+      font-weight: 600;
+    }
+    .custom-select-option.hidden { display: none; }
   </style>
 </head>
 <body>
   <h1 class="page-title">My Profile</h1>
 
-  <div class="profile-container" id="profileContainer">
+  <div class="profile-container">
     <div class="card avatar-section">
       <img src="https://via.placeholder.com/150" id="avatarImg" class="avatar-preview" alt="Avatar">
       <h3 id="fullName" style="margin: 0 0 5px;">Loading...</h3>
@@ -47,7 +87,8 @@
     </div>
 
     <div class="card">
-      <h3 style="margin-top: 0; font-family: 'Fraunces';">Update Details</h3>
+      <!-- SECTION 1: General Details -->
+      <h3 class="section-title">General Details</h3>
       <form id="profileForm">
         <div class="form-row">
           <div class="form-group"><label>First Name</label><input type="text" name="first_name" required></div>
@@ -74,6 +115,37 @@
         </div>
         <button type="submit" class="btn">Save Changes</button>
       </form>
+
+      <!-- SECTION 2: Payout Details -->
+      <h3 class="section-title" style="margin-top: 40px;">Payout Bank Details</h3>
+      <p style="color: var(--warm-sand); font-size: 13px; margin-bottom: 20px;">This is where your prize money will be sent if you win.</p>
+      <form id="bankForm">
+        <div class="form-row">
+          <!-- CUSTOM SEARCHABLE DROPDOWN -->
+          <div class="form-group">
+            <label>Bank Name</label>
+            <div class="custom-select-wrapper">
+              <input type="text" id="bankSearchInput" class="custom-select-input" placeholder="Type to search bank..." autocomplete="off" required>
+              <input type="hidden" name="bank_code" id="bankCodeInput" required>
+              <input type="hidden" name="bank_name" id="bankNameInput" required>
+              
+              <div class="custom-select-dropdown" id="bankDropdown">
+                <!-- Options injected via JS -->
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Account Number</label>
+            <input type="text" name="account_number" maxlength="10" minlength="10" placeholder="10-digit account number" required>
+          </div>
+        </div>
+        <button type="submit" class="btn" id="bankBtn">Save Bank Details</button>
+        <div class="bank-verified" id="bankVerified">
+          ✅ Verified Account: <span id="verifiedName"></span>
+        </div>
+      </form>
+
     </div>
   </div>
 
@@ -82,7 +154,16 @@
     import { toast } from '../assets/js/core/toast.js';
     import '../assets/js/core/layout.js';
 
-    const form = document.getElementById('profileForm');
+    const profileForm = document.getElementById('profileForm');
+    const bankForm = document.getElementById('bankForm');
+    
+    // Custom Dropdown Elements
+    const bankSearchInput = document.getElementById('bankSearchInput');
+    const bankDropdown = document.getElementById('bankDropdown');
+    const bankCodeInput = document.getElementById('bankCodeInput');
+    const bankNameInput = document.getElementById('bankNameInput');
+    
+    let allBanks = [];
 
     async function loadProfile() {
       try {
@@ -95,38 +176,112 @@
         
         if (user.avatar_url) document.getElementById('avatarImg').src = user.avatar_url;
 
-        form.elements.first_name.value = user.first_name;
-        form.elements.last_name.value = user.last_name;
-        form.elements.username.value = user.username;
-        form.elements.email.value = user.email;
-        form.elements.phone.value = user.phone || '';
-        form.elements.gender.value = user.gender || 'male';
+        profileForm.elements.first_name.value = user.first_name;
+        profileForm.elements.last_name.value = user.last_name;
+        profileForm.elements.username.value = user.username;
+        profileForm.elements.email.value = user.email;
+        profileForm.elements.phone.value = user.phone || '';
+        profileForm.elements.gender.value = user.gender || 'male';
+
+        // Populate Bank Details if they exist
+        if (user.account_number) {
+            bankForm.elements.account_number.value = user.account_number;
+            document.getElementById('bankVerified').style.display = 'block';
+            document.getElementById('verifiedName').textContent = user.account_name;
+            
+            // Set the custom input text to show their saved bank
+            if (user.bank_name) {
+                bankSearchInput.value = user.bank_name;
+                bankNameInput.value = user.bank_name;
+                bankCodeInput.value = user.bank_code;
+            }
+        }
 
       } catch (err) {
         toast.error('Failed to load profile.');
       }
     }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = form.querySelector('button');
-      const originalBtnText = btn.textContent;
-      btn.disabled = true; 
-      btn.textContent = 'Saving...';
+    async function loadBanks() {
+        try {
+            allBanks = await api('users', 'getBanks');
+            
+            // Render options initially
+            renderBankOptions(allBanks);
 
-      // 1. Handle Image Conversion to Base64
-      let avatarBase64 = null;
-      const fileInput = form.elements.avatar;
-      if (fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        
-        // Optional: Prevent uploading massive files (e.g., > 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error("Image is too large. Please choose a file under 5MB.");
-            btn.disabled = false; btn.textContent = originalBtnText;
+            // Search Logic
+            bankSearchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const filtered = allBanks.filter(b => b.name.toLowerCase().includes(term));
+                renderBankOptions(filtered);
+                
+                // Clear hidden fields if they type again
+                bankCodeInput.value = '';
+                bankNameInput.value = '';
+            });
+
+            // Open dropdown on focus
+            bankSearchInput.addEventListener('focus', () => {
+                bankDropdown.classList.add('active');
+                // Re-render to show all if input is empty, or filtered if not
+                if(bankSearchInput.value === '') renderBankOptions(allBanks);
+            });
+
+        } catch (err) {
+            toast.error('Failed to load bank list.');
+        }
+    }
+
+    function renderBankOptions(banks) {
+        if (banks.length === 0) {
+            bankDropdown.innerHTML = `<div class="custom-select-option" style="color: var(--warm-sand);">No banks found</div>`;
             return;
         }
 
+        bankDropdown.innerHTML = banks.map(b => 
+            `<div class="custom-select-option" data-code="${b.code}" data-name="${b.name}">${b.name}</div>`
+        ).join('');
+
+        // Add click listeners to options
+        bankDropdown.querySelectorAll('.custom-select-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                const code = opt.getAttribute('data-code');
+                const name = opt.getAttribute('data-name');
+                
+                // If it's the "No banks found" div, do nothing
+                if(!code) return;
+
+                bankSearchInput.value = name;
+                bankCodeInput.value = code;
+                bankNameInput.value = name;
+                
+                bankDropdown.classList.remove('active');
+            });
+        });
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!bankSearchInput.contains(e.target) && !bankDropdown.contains(e.target)) {
+            bankDropdown.classList.remove('active');
+        }
+    });
+
+    // --- SUBMIT GENERAL PROFILE ---
+    profileForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = profileForm.querySelector('button');
+      const originalText = btn.textContent;
+      btn.disabled = true; btn.textContent = 'Saving...';
+
+      let avatarBase64 = null;
+      const fileInput = profileForm.elements.avatar;
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("Image is too large. Max 5MB.");
+            btn.disabled = false; btn.textContent = originalText; return;
+        }
         avatarBase64 = await new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = (e) => resolve(e.target.result);
@@ -134,37 +289,66 @@
         });
       }
 
-      // 2. Build the payload
       const body = {
-        first_name: form.elements.first_name.value.trim(),
-        last_name: form.elements.last_name.value.trim(),
-        phone: form.elements.phone.value.trim(),
-        gender: form.elements.gender.value
+        first_name: profileForm.elements.first_name.value.trim(),
+        last_name: profileForm.elements.last_name.value.trim(),
+        phone: profileForm.elements.phone.value.trim(),
+        gender: profileForm.elements.gender.value
       };
       if (avatarBase64) body.avatar_base64 = avatarBase64;
 
       try {
-        // 3. Send to API
         const updatedUser = await api('users', 'update_profile', { method: 'POST', body });
-        
-        // 4. Instantly update the UI without reloading the page
         document.getElementById('fullName').textContent = `${updatedUser.first_name} ${updatedUser.last_name}`;
-        if (updatedUser.avatar_url) {
-            document.getElementById('avatarImg').src = updatedUser.avatar_url;
-        }
-
+        if (updatedUser.avatar_url) document.getElementById('avatarImg').src = updatedUser.avatar_url;
         toast.success('Profile updated successfully!');
-        form.elements.avatar.value = ''; // Clear the file input
-        
+        profileForm.elements.avatar.value = ''; 
       } catch (err) {
         toast.error(err.message || 'Failed to update profile.');
       } finally {
-        btn.disabled = false; 
-        btn.textContent = originalBtnText;
+        btn.disabled = false; btn.textContent = originalText;
+      }
+    });
+
+    // --- SUBMIT BANK DETAILS ---
+    bankForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('bankBtn');
+      const originalText = btn.textContent;
+      
+      const bankCode = bankCodeInput.value;
+      const bankName = bankNameInput.value;
+      const accountNumber = bankForm.elements.account_number.value;
+
+      if (!bankCode || !bankName) {
+          return toast.error('Please select a bank from the dropdown list.');
+      }
+      if (accountNumber.length !== 10) {
+          return toast.error('Account number must be exactly 10 digits.');
+      }
+
+      btn.disabled = true; btn.textContent = 'Verifying...';
+
+      try {
+        const res = await api('users', 'update_bank_details', { 
+            method: 'POST', 
+            body: { bank_code: bankCode, bank_name: bankName, account_number: accountNumber } 
+        });
+        
+        toast.success('Bank details verified and saved!');
+        document.getElementById('bankVerified').style.display = 'block';
+        document.getElementById('verifiedName').textContent = res.account_name;
+        
+      } catch (err) {
+        toast.error(err.message || 'Failed to verify bank details.');
+        document.getElementById('bankVerified').style.display = 'none';
+      } finally {
+        btn.disabled = false; btn.textContent = originalText;
       }
     });
 
     loadProfile();
+    loadBanks();
   </script>
 </body>
 </html>
